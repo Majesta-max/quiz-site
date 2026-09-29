@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Party - Jeu Multijoueur</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      user-select: none;
+    }
+
+    .font-heading {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    /* Selected state custom glow */
+    .option-selected {
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.6), inset 0 0 15px rgba(245, 158, 11, 0.3) !important;
+      transform: scale(1.02) !important;
+      background-color: rgba(245, 158, 11, 0.15) !important;
+    }
+
+    /* Leaflet customization */
+    .leaflet-container {
+      background: #0f172a;
+      border-radius: 1rem;
+      z-index: 10;
+    }
+
+    /* Glassmorphism utility */
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Pulse animations */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+
+    .animate-pulse-glow {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col justify-between overflow-x-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
+
+  <header class="p-4 glass-card border-b border-slate-800 flex justify-between items-center z-20">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+        <i class="fa-solid fa-gamepad text-xl text-white"></i>
+      </div>
+      <div>
+        <h1 class="font-heading text-xl font-bold bg-gradient-to-r from-amber-400 via-orange-300 to-purple-300 bg-clip-text text-transparent">
+          QUIZ PARTY
+        </h1>
+        <p class="text-xs text-slate-400" id="session-info">Salon Solo / Local</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div id="player-badge" class="hidden md:flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
+        <span id="player-avatar" class="text-lg">🎮</span>
+        <span id="player-name" class="font-bold text-sm text-slate-200">Joueur</span>
+        <span id="player-score" class="ml-2 bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full text-xs font-semibold">0 pts</span>
+      </div>
+      
+      <button id="btn-sound" class="p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center relative">
+
+    <!-- VIEW 1: LOBBY & SETUP -->
+    <section id="view-lobby" class="space-y-6">
+      <div class="text-center space-y-2">
+        <h2 class="font-heading text-4xl md:text-5xl font-black text-white tracking-wide">
+          DÉFIE TES AMIS & BOTS !
+        </h2>
+        <p class="text-slate-400 max-w-xl mx-auto">
+          Sélectionne un mode de jeu, choisis ta catégorie et teste tes connaissances générales, géographiques et historiques.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Profile Configuration -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-user-gear"></i> Ton Profil
+          </h3>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Pseudo</label>
+            <input type="text" id="input-pseudo" value="Champion" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-semibold focus:outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Avatar</label>
+            <div class="flex gap-2 text-2xl overflow-x-auto pb-2" id="avatar-picker">
+              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-amber-500">🎮</button>
+              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">🚀</button>
+              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">🦊</button>
+              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">🧠</button>
+              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">👑</button>
+              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">⚡</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode & Bot Config -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+            <i class="fa-solid fa-sliders"></i> Configuration de Partie
+          </h3>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Adversaires Bots</label>
+              <select id="select-bots" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold">
+                <option value="0">Aucun Bot (Solo)</option>
+                <option value="1">1 Bot</option>
+                <option value="3" selected>3 Bots (Recommandé)</option>
+                <option value="5">5 Bots</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Nombre de Questions</label>
+              <select id="select-count" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold">
+                <option value="5">5 Questions</option>
+                <option value="10" selected>10 Questions</option>
+                <option value="15">15 Questions</option>
+              </select>
+            </div>
+          </div>
+          <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center gap-3 text-xs text-amber-300">
+            <i class="fa-solid fa-circle-info text-base"></i>
+            <span>Multijoueur : crée un salon ou rejoins-en un avec un code (menu ci-dessous). Les bots complètent la partie.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Multijoueur en ligne -->
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-globe"></i> Multijoueur en ligne
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <button id="btn-create-room" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold hover:opacity-90 transition">
+              <i class="fa-solid fa-plus mr-1"></i> Créer un salon
+            </button>
+            <div id="room-code-box" class="hidden text-center">
+              <div class="text-xs text-slate-400">Code du salon (à donner à tes amis)</div>
+              <div id="room-code" class="font-heading text-4xl font-black tracking-widest text-amber-400">-----</div>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <input id="input-room-code" maxlength="5" placeholder="CODE" class="w-full min-w-0 bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-bold uppercase tracking-widest text-center focus:outline-none focus:border-amber-500">
+            <button id="btn-join-room" class="px-5 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition">Rejoindre</button>
+          </div>
+        </div>
+        <div id="room-status" class="text-xs text-slate-400 text-center">Hors ligne : tu joues avec des bots.</div>
+        <div id="room-players" class="flex flex-wrap gap-2 justify-center"></div>
+        <div class="text-center"><button id="btn-leave-room" class="hidden px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 text-sm hover:bg-slate-700 transition">Quitter le salon</button></div>
+      </div>
+
+      <!-- Categories Picker -->
+      <div class="space-y-3">
+        <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-shapes text-amber-400"></i> Choisi ta Catégorie
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3" id="categories-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="text-center pt-2">
+        <button id="btn-start" class="px-10 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-xl shadow-lg shadow-amber-500/30 transform hover:-translate-y-1 transition active:translate-y-0">
+          LANCER LA PARTIE <i class="fa-solid fa-play ml-2"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 2: GAME QUESTION -->
+    <section id="view-game" class="hidden space-y-6">
+      <!-- Progress Bar & Timer -->
+      <div class="space-y-2">
+        <div class="flex justify-between items-center text-sm font-bold">
+          <span id="question-tracker" class="text-amber-400">Question 1 / 10</span>
+          <span id="category-badge" class="bg-slate-800 px-3 py-1 rounded-full border border-slate-700 text-xs text-slate-300">
+            Culture Générale
+          </span>
+          <span id="timer-text" class="text-red-400 font-mono text-lg">⏱️ 20s</span>
+        </div>
+        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
+          <div id="timer-bar" class="h-full bg-gradient-to-r from-amber-500 to-red-500 w-full transition-all duration-1000 ease-linear"></div>
+        </div>
+      </div>
+
+      <!-- Question Text -->
+      <div class="glass-card p-6 md:p-8 rounded-3xl text-center space-y-4 relative overflow-hidden">
+        <h2 id="question-title" class="font-heading text-2xl md:text-3xl font-bold text-white leading-tight">
+          Chargement de la question...
+        </h2>
+        <div id="question-media" class="hidden flex justify-center">
+          <img id="flag-img" src="" alt="Drapeau" class="h-28 md:h-36 rounded-xl border-2 border-slate-700 shadow-xl object-contain">
+        </div>
+      </div>
+
+      <!-- Multiple Choice Options Grid -->
+      <div id="mcq-options" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Option Buttons injected dynamically -->
+      </div>
+
+      <!-- Map Locator View (Leaflet) -->
+      <div id="map-container" class="hidden space-y-3">
+        <div class="text-xs font-semibold text-center text-amber-300 bg-amber-500/10 border border-amber-500/30 p-2 rounded-xl">
+          📍 Cliquez sur la carte pour placer votre repère puis validez !
+        </div>
+        <div id="leaflet-map" class="h-80 w-full rounded-2xl border border-slate-700 shadow-2xl relative"></div>
+        <div class="flex justify-between items-center">
+          <span id="map-pin-status" class="text-xs text-slate-400">Aucun repère placé</span>
+          <button id="btn-submit-map" disabled class="px-6 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold opacity-50 cursor-not-allowed transition">
+            Valider la position <i class="fa-solid fa-check ml-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Players Status Bar -->
+      <div class="glass-card p-4 rounded-2xl flex items-center justify-between">
+        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Réponses des joueurs :</span>
+        <div id="players-status-list" class="flex gap-2">
+          <!-- Dynamic Status icons -->
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: ROUND RECAP & LEADERBOARD -->
+    <section id="view-recap" class="hidden space-y-6">
+      <div class="text-center space-y-2">
+        <h2 id="recap-header-title" class="font-heading text-3xl md:text-4xl font-bold text-white">
+          Résultats du Tour !
+        </h2>
+        <p id="recap-explanation" class="text-slate-300 max-w-xl mx-auto bg-slate-900/80 p-4 rounded-2xl border border-slate-800 text-sm">
+          Explication de la réponse...
+        </p>
+      </div>
+
+      <!-- Carte du récap (questions de type carte) -->
+      <div id="recap-map-wrap" class="hidden space-y-2">
+        <div id="recap-map-info" class="text-center text-sm font-semibold text-amber-300"></div>
+        <div id="recap-map" class="h-72 w-full rounded-2xl border border-slate-700 shadow-2xl relative"></div>
+      </div>
+
+      <!-- Leaderboard Cards -->
+      <div class="glass-card p-6 rounded-3xl space-y-4">
+        <h3 class="font-heading text-xl font-bold text-amber-400 flex items-center gap-2">
+          <i class="fa-solid fa-trophy"></i> Classement Général
+        </h3>
+        <div id="leaderboard-list" class="space-y-2">
+          <!-- Dynamic Leaderboard Items -->
+        </div>
+      </div>
+
+      <div class="text-center pt-2">
+        <button id="btn-next-question" class="px-8 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-lg shadow-lg shadow-amber-500/20 transition">
+          Question Suivante <i class="fa-solid fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="p-4 text-center text-xs text-slate-500 border-t border-slate-800/50">
+    Quiz Party &copy; 2026 - Jeu de Quiz Multijoueur & Bots - Cartographie sans clé d'API
+  </footer>
+
+  <script>
+    /* =========================================================================
+       1. QUESTION BANK (100% Real, Verified Data across 10 Categories)
+       ========================================================================= */
+    const QUESTION_BANK = {
+      general: [
+        { q: "Quel est l'élément chimique le plus abondant dans l'univers ?", options: ["Hydrogène", "Hélium", "Oxygène", "Carbone"], answer: 0, explanation: "L'hydrogène constitue environ 75% de la matière baryonique de l'Univers." },
+        { q: "En quelle année l'homme a-t-il marché sur la Lune pour la première fois ?", options: ["1965", "1969", "1971", "1975"], answer: 1, explanation: "Neil Armstrong et Buzz Aldrin ont marché sur la Lune le 20 juillet 1969 lors de la mission Apollo 11." },
+        { q: "Quel est le plus grand océan du monde ?", options: ["Océan Atlantique", "Océan Indien", "Océan Pacifique", "Océan Arctique"], answer: 2, explanation: "L'océan Pacifique couvre plus de 165 millions de km², soit un tiers de la surface terrestre." }
+      ],
+      cinema: [
+        { q: "Quel film a remporté l'Oscar du Meilleur Film en 2024 ?", options: ["Oppenheimer", "Barbie", "Poor Things", "Anatomie d'une chute"], answer: 0, explanation: "Oppenheimer de Christopher Nolan a triomphé aux Oscars 2024 avec 7 statuettes." },
+        { q: "Qui réalise le film 'Inception' sorti en 2010 ?", options: ["Steven Spielberg", "Christopher Nolan", "Denis Villeneuve", "Quentin Tarantino"], answer: 1, explanation: "Christopher Nolan a réalisé ce thriller de science-fiction sur les rêves." },
+        { q: "Quel acteur incarne Jack Sparrow dans la saga 'Pirates des Caraïbes' ?", options: ["Brad Pitt", "Johnny Depp", "Orlando Bloom", "Tom Cruise"], answer: 1, explanation: "Johnny Depp incarne le mythique Capitaine Jack Sparrow." }
+      ],
+      gaming: [
+        { q: "En quelle année est sorti le jeu original 'The Legend of Zelda' sur NES ?", options: ["1983", "1986", "1989", "1991"], answer: 1, explanation: "The Legend of Zelda est sorti au Japon en février 1986." },
+        { q: "Quel studio a développé 'The Witcher 3: Wild Hunt' ?", options: ["CD Projekt Red", "Bethesda", "Ubisoft", "BioWare"], answer: 0, explanation: "CD Projekt Red est le studio polonais derrière la saga The Witcher." },
+        { q: "Quel est le jeu vidéo le plus vendu de tous les temps ?", options: ["GTA V", "Tetris", "Minecraft", "Super Mario Bros"], answer: 2, explanation: "Minecraft dépasse les 300 millions d'exemplaires vendus dans le monde." }
+      ],
+      art: [
+        { q: "Où est exposée La Joconde de Léonard de Vinci ?", options: ["Musée du Prado", "Musée du Louvre", "National Gallery", "Musée de l'Hermitage"], answer: 1, explanation: "La Joconde est exposée à Paris au Musée du Louvre." },
+        { q: "Quel mouvement artistique est associé à Claude Monet ?", options: ["Cubisme", "Impressionnisme", "Surréalisme", "Expressionnisme"], answer: 1, explanation: "Monet est l'un des fondateurs et chefs de file de l'Impressionnisme." },
+        { q: "Qui a écrit le roman 'Les Misérables' ?", options: ["Émile Zola", "Gustave Flaubert", "Victor Hugo", "Alexandre Dumas"], answer: 2, explanation: "Victor Hugo a publié Les Misérables en 1862." }
+      ],
+      history: [
+        { type: "map", q: "[CARTE] Placez votre repère sur le site de la bataille de Waterloo (1815).", lat: 50.680, lng: 4.412, name: "Waterloo (Belgique)", explanation: "La bataille de Waterloo s'est déroulée en Belgique le 18 juin 1815." },
+        { q: "En quelle année a eu lieu la prise de la Bastille ?", options: ["1789", "1792", "1799", "1804"], answer: 0, explanation: "Le 14 juillet 1789 marque le début symbolique de la Révolution française." },
+        { type: "map", q: "[CARTE] Placez votre repère sur la ville historique de Rome.", lat: 41.902, lng: 12.496, name: "Rome", explanation: "Rome était le cœur de l'Empire romain." }
+      ],
+      geography: [
+        { type: "map", q: "[CARTE] Placez votre repère sur la capitale du Japon (Tokyo).", lat: 35.676, lng: 139.650, name: "Tokyo", explanation: "Tokyo est la métropole la plus peuplée du monde." },
+        { type: "map", q: "[CARTE] Placez votre repère sur la ville de New York.", lat: 40.712, lng: -74.006, name: "New York", explanation: "New York se situe sur la côte est des États-Unis." },
+        { type: "flag", q: "À quel pays appartient ce drapeau ?", flag: "https://flagcdn.com/w320/ca.png", options: ["Canada", "Japon", "Pérou", "Autriche"], answer: 0, explanation: "Le drapeau du Canada arbore sa célèbre feuille d'érable rouge." }
+      ],
+      flags: [
+        { type: "flag", q: "À quel pays appartient ce drapeau ?", flag: "https://flagcdn.com/w320/br.png", options: ["Brésil", "Argentine", "Colombie", "Portugal"], answer: 0, explanation: "Le drapeau du Brésil comporte l'ordre 'Ordem e Progresso'." },
+        { type: "flag", q: "À quel pays appartient ce drapeau ?", flag: "https://flagcdn.com/w320/kr.png", options: ["Corée du Sud", "Japon", "Chine", "Thaïlande"], answer: 0, explanation: "Le drapeau sud-coréen s'appelle le Taegeukgi." },
+        { type: "flag", q: "À quel pays appartient ce drapeau ?", flag: "https://flagcdn.com/w320/za.png", options: ["Afrique du Sud", "Kenya", "Nigeria", "Ghana"], answer: 0, explanation: "Adopté en 1994, il symbolise la réunion de la nation sud-africaine." }
+      ],
+      music: [
+        { q: "Quel groupe interprète le tube 'Bohemian Rhapsody' ?", options: ["The Beatles", "Queen", "Led Zeppelin", "Pink Floyd"], answer: 1, explanation: "Bohemian Rhapsody est sorti en 1975 sur l'album A Night at the Opera." },
+        { q: "Qui est surnommé le 'Roi de la Pop' ?", options: ["Elvis Presley", "Prince", "Michael Jackson", "Stevie Wonder"], answer: 2, explanation: "Michael Jackson est l'un des artistes les plus vendus de l'histoire." },
+        { q: "Quel album de Daft Punk contient le titre 'Get Lucky' ?", options: ["Homework", "Discovery", "Human After All", "Random Access Memories"], answer: 3, explanation: "Random Access Memories a remporté le Grammy d'album de l'année en 2014." }
+      ],
+      science: [
+        { q: "Quelle est la vitesse de la lumière dans le vide ?", options: ["300 000 km/s", "150 000 km/s", "1 000 000 km/s", "30 000 km/s"], answer: 0, explanation: "La vitesse de la lumière est exactement de 299 792 458 m/s." },
+        { q: "Quel organe pompe le sang dans le corps humain ?", options: ["Le Poumon", "Le Cerveau", "Le Cœur", "Le Foie"], answer: 2, explanation: "Le cœur bat environ 100 000 fois par jour pour faire circuler le sang." },
+        { q: "Quelle est la formule chimique de l'eau ?", options: ["CO2", "H2O", "NaCl", "O2"], answer: 1, explanation: "L'eau est composée de 2 atomes d'hydrogène et 1 d'oxygène." }
+      ],
+      sports: [
+        { q: "Tous les combien d'années se déroulent les Jeux Olympiques d'été ?", options: ["2 ans", "4 ans", "5 ans", "6 ans"], answer: 1, explanation: "Les JO d'été ont lieu tous les 4 ans." },
+        { q: "Quel pays a remporté la Coupe du Monde de football FIFA 2022 ?", options: ["France", "Brésil", "Argentine", "Allemagne"], answer: 2, explanation: "L'Argentine a battu la France lors d'une finale épique au Qatar." },
+        { q: "Combien de joueurs composent une équipe de basket sur le terrain ?", options: ["5", "6", "7", "11"], answer: 0, explanation: "Une équipe de basketball compte 5 joueurs en jeu." }
+      ]
+    };
+
+    /* --- Questions supplémentaires --- */
+    const mc = (q, r, w, e) => {
+      const o = [r, ...w];
+      for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
+      return { q, options: o, answer: o.indexOf(r), explanation: e || "" };
+    };
+    const mp = (q, name, lat, lng, e) => ({ type: "map", q: "[CARTE] " + q, lat, lng, name, explanation: e });
+    const fl = (c, r, w) => ({ ...mc("À quel pays appartient ce drapeau ?", r, w, "Ce drapeau est celui de : " + r + "."), type: "flag", flag: `https://flagcdn.com/w320/${c}.png` });
+
+    QUESTION_BANK.general.push(
+      mc("Quelle est la capitale de l'Australie ?", "Canberra", ["Sydney", "Melbourne", "Perth"], "Canberra est la capitale depuis 1913."),
+      mc("Quel est le plus long fleuve d'Europe ?", "La Volga", ["Le Danube", "Le Rhin", "La Loire"], "La Volga mesure environ 3 500 km."),
+      mc("Quelle langue compte le plus de locuteurs natifs ?", "Le mandarin", ["L'anglais", "L'espagnol", "L'hindi"], "Le mandarin compte plus de 900 millions de locuteurs natifs."),
+      mc("Combien d'os compte le squelette d'un adulte ?", "206", ["186", "226", "256"], "Un adulte possède 206 os."),
+      mc("Quelle planète est la plus proche du Soleil ?", "Mercure", ["Vénus", "Mars", "La Terre"], "Mercure orbite à environ 58 millions de km du Soleil."),
+      mc("Quelle est la monnaie du Japon ?", "Le yen", ["Le won", "Le yuan", "Le baht"], "Le yen est la monnaie japonaise."),
+      mc("Quelle est la plus haute montagne du monde ?", "L'Everest", ["Le K2", "Le Mont Blanc", "Le Kilimandjaro"], "L'Everest culmine à 8 849 m."),
+      mc("Quel est le plus vaste pays du monde ?", "La Russie", ["Le Canada", "La Chine", "Les États-Unis"], "La Russie couvre plus de 17 millions de km².")
+    );
+    QUESTION_BANK.cinema.push(
+      mc("Qui a réalisé 'Titanic' (1997) ?", "James Cameron", ["Ridley Scott", "Steven Spielberg", "Michael Bay"], "James Cameron a aussi réalisé Avatar."),
+      mc("Quel studio a produit 'Toy Story' ?", "Pixar", ["DreamWorks", "Illumination", "Ghibli"], "Toy Story (1995) est le premier long métrage entièrement en images de synthèse."),
+      mc("Quel acteur joue Neo dans 'Matrix' ?", "Keanu Reeves", ["Brad Pitt", "Tom Hanks", "Will Smith"], "Keanu Reeves incarne Thomas Anderson, alias Neo."),
+      mc("Quel film a reçu la Palme d'or en 2019 ?", "Parasite", ["Roma", "1917", "Joker"], "Parasite de Bong Joon-ho a aussi remporté l'Oscar du meilleur film."),
+      mc("Qui a réalisé 'Le Parrain' ?", "Francis Ford Coppola", ["Martin Scorsese", "Brian De Palma", "Sidney Lumet"], "Le film est sorti en 1972."),
+      mc("Qui a réalisé la trilogie 'Le Seigneur des anneaux' ?", "Peter Jackson", ["George Lucas", "Tim Burton", "Sam Raimi"], "La trilogie est sortie entre 2001 et 2003."),
+      mc("Dans quel film entend-on 'Que la Force soit avec toi' ?", "Star Wars", ["Star Trek", "Dune", "Avatar"], "C'est une réplique emblématique de Star Wars."),
+      mc("Quel film Disney met en scène le lion Simba ?", "Le Roi Lion", ["Bambi", "Tarzan", "Aladdin"], "Le Roi Lion est sorti en 1994.")
+    );
+    QUESTION_BANK.gaming.push(
+      mc("Qui est le créateur de Mario ?", "Shigeru Miyamoto", ["Hideo Kojima", "Satoru Iwata", "Yu Suzuki"], "Miyamoto a aussi créé Zelda."),
+      mc("Quel studio a développé 'Fortnite' ?", "Epic Games", ["Valve", "Riot Games", "Activision"], "Fortnite est sorti en 2017."),
+      mc("Quel Pokémon porte le numéro 25 du Pokédex ?", "Pikachu", ["Raichu", "Pichu", "Miaouss"], "Pikachu est la mascotte de la franchise."),
+      mc("En quelle année Minecraft est-il sorti en version complète ?", "2011", ["2009", "2013", "2015"], "La version 1.0 est sortie en novembre 2011."),
+      mc("En quelle année est sortie la PlayStation 4 ?", "2013", ["2011", "2014", "2015"], "Elle est sortie fin 2013."),
+      mc("Quel héros est le personnage principal de la série 'Halo' ?", "Master Chief", ["Marcus Fenix", "Doomguy", "Samus Aran"], "Master Chief est un super-soldat de l'UNSC."),
+      mc("Quel studio a créé 'League of Legends' ?", "Riot Games", ["Blizzard", "Valve", "Epic Games"], "Le jeu est sorti en 2009."),
+      mc("Dans quelle ville fictive se déroule 'GTA V' ?", "Los Santos", ["Vice City", "Liberty City", "San Fierro"], "Los Santos s'inspire de Los Angeles.")
+    );
+    QUESTION_BANK.art.push(
+      mc("Qui a peint 'La Nuit étoilée' ?", "Vincent van Gogh", ["Claude Monet", "Edvard Munch", "Paul Cézanne"], "Le tableau date de 1889."),
+      mc("Qui a écrit 'Le Petit Prince' ?", "Antoine de Saint-Exupéry", ["Jules Verne", "Albert Camus", "Marcel Pagnol"], "Le livre est paru en 1943."),
+      mc("Qui a sculpté 'Le Penseur' ?", "Auguste Rodin", ["Michel-Ange", "Donatello", "Antoine Bourdelle"], "Le Penseur était à l'origine destiné à La Porte de l'Enfer."),
+      mc("Qui a écrit 'Roméo et Juliette' ?", "William Shakespeare", ["Molière", "Goethe", "Dante"], "La pièce date des années 1590."),
+      mc("Qui a peint 'Guernica' ?", "Pablo Picasso", ["Salvador Dalí", "Joan Miró", "Francisco Goya"], "Guernica date de 1937."),
+      mc("Qui a écrit 'L'Étranger' ?", "Albert Camus", ["Jean-Paul Sartre", "André Gide", "Marcel Proust"], "Le roman est paru en 1942."),
+      mc("À quel mouvement est associé Salvador Dalí ?", "Le surréalisme", ["Le fauvisme", "Le dadaïsme", "Le pop art"], "Dalí est célèbre pour 'La Persistance de la mémoire'."),
+      mc("Qui a écrit 'Harry Potter' ?", "J. K. Rowling", ["Roald Dahl", "J. R. R. Tolkien", "C. S. Lewis"], "Le premier tome est paru en 1997.")
+    );
+    QUESTION_BANK.history.push(
+      mc("En quelle année s'est terminée la Seconde Guerre mondiale en Europe ?", "1945", ["1943", "1944", "1946"], "L'Allemagne a capitulé en mai 1945."),
+      mc("Qui a été le premier empereur des Français ?", "Napoléon Ier", ["Louis XVI", "Charlemagne", "Louis XIV"], "Napoléon est sacré empereur en 1804."),
+      mc("En quelle année le mur de Berlin est-il tombé ?", "1989", ["1985", "1987", "1991"], "Il est tombé dans la nuit du 9 novembre 1989."),
+      mc("En quelle année Christophe Colomb atteint-il l'Amérique ?", "1492", ["1453", "1515", "1498"], "Il débarque aux Bahamas le 12 octobre 1492."),
+      mc("Combien de temps a duré la guerre de Cent Ans ?", "116 ans", ["100 ans", "87 ans", "130 ans"], "Elle a duré de 1337 à 1453."),
+      mp("Placez votre repère sur Athènes, berceau de la démocratie.", "Athènes", 37.984, 23.728, "Athènes a inventé la démocratie au Ve siècle av. J.-C."),
+      mp("Placez votre repère sur les pyramides de Gizeh.", "Gizeh (Égypte)", 29.979, 31.134, "La pyramide de Khéops date d'environ 2560 av. J.-C."),
+      mp("Placez votre repère sur le château de Versailles.", "Versailles", 48.805, 2.120, "Louis XIV y a installé la cour en 1682.")
+    );
+    QUESTION_BANK.geography.push(
+      mp("Placez votre repère sur Paris.", "Paris", 48.857, 2.352, "Paris est la capitale de la France."),
+      mp("Placez votre repère sur Sydney.", "Sydney", -33.868, 151.209, "Sydney est la plus grande ville d'Australie."),
+      mp("Placez votre repère sur Rio de Janeiro.", "Rio de Janeiro", -22.907, -43.173, "Rio est célèbre pour le Pain de Sucre et le Christ Rédempteur."),
+      mp("Placez votre repère sur Le Cap.", "Le Cap (Afrique du Sud)", -33.925, 18.424, "Le Cap est dominé par la Montagne de la Table."),
+      mp("Placez votre repère sur Moscou.", "Moscou", 55.756, 37.617, "Moscou est la capitale de la Russie."),
+      mc("Quel est le plus long fleuve d'Afrique ?", "Le Nil", ["Le Congo", "Le Niger", "Le Zambèze"], "Le Nil mesure environ 6 650 km."),
+      mc("Quelle est la capitale du Canada ?", "Ottawa", ["Toronto", "Montréal", "Vancouver"], "Ottawa est capitale depuis 1866."),
+      mc("Quelle est la capitale de l'Espagne ?", "Madrid", ["Barcelone", "Séville", "Valence"], "Madrid est au centre de la péninsule Ibérique.")
+    );
+    QUESTION_BANK.flags.push(
+      fl("jp", "Japon", ["Bangladesh", "Palaos", "Chine"]),
+      fl("it", "Italie", ["Irlande", "Mexique", "Hongrie"]),
+      fl("de", "Allemagne", ["Belgique", "Pays-Bas", "Autriche"]),
+      fl("es", "Espagne", ["Portugal", "Andorre", "Colombie"]),
+      fl("gb", "Royaume-Uni", ["Australie", "Nouvelle-Zélande", "Fidji"]),
+      fl("in", "Inde", ["Niger", "Irlande", "Côte d'Ivoire"]),
+      fl("mx", "Mexique", ["Italie", "Iran", "Bulgarie"]),
+      fl("se", "Suède", ["Norvège", "Finlande", "Danemark"]),
+      fl("ch", "Suisse", ["Autriche", "Danemark", "Tonga"]),
+      fl("tr", "Turquie", ["Tunisie", "Pakistan", "Maroc"]),
+      fl("ar", "Argentine", ["Uruguay", "Honduras", "Nicaragua"])
+    );
+    QUESTION_BANK.music.push(
+      mc("Quel groupe a chanté 'Yellow Submarine' ?", "The Beatles", ["The Rolling Stones", "The Who", "Oasis"], "La chanson date de 1966."),
+      mc("Combien de cordes a une guitare classique ?", "6", ["4", "5", "7"], "Les six cordes sont accordées Mi-La-Ré-Sol-Si-Mi."),
+      mc("Qui a chanté 'Rolling in the Deep' ?", "Adele", ["Beyoncé", "Rihanna", "Lady Gaga"], "Le titre est sorti en 2010."),
+      mc("Qui a composé la Neuvième Symphonie avec l'Ode à la joie ?", "Beethoven", ["Mozart", "Bach", "Chopin"], "Elle a été créée en 1824."),
+      mc("Qui a chanté 'Papaoutai' ?", "Stromae", ["Angèle", "Orelsan", "Soprano"], "Stromae est un artiste belge."),
+      mc("Quel groupe a chanté 'Smells Like Teen Spirit' ?", "Nirvana", ["Pearl Jam", "Metallica", "Oasis"], "Le titre est sorti en 1991."),
+      mc("Quel groupe a sorti 'The Dark Side of the Moon' ?", "Pink Floyd", ["Led Zeppelin", "Queen", "Genesis"], "L'album date de 1973."),
+      mc("De quel pays vient le groupe ABBA ?", "La Suède", ["La Norvège", "Le Danemark", "La Finlande"], "ABBA s'est formé à Stockholm en 1972.")
+    );
+    QUESTION_BANK.science.push(
+      mc("Combien de planètes compte le système solaire ?", "8", ["7", "9", "10"], "Pluton est classée planète naine depuis 2006."),
+      mc("Quel est le symbole chimique de l'or ?", "Au", ["Ag", "Or", "Fe"], "Au vient du latin 'aurum'."),
+      mc("Quel est le gaz le plus abondant de l'atmosphère terrestre ?", "L'azote", ["L'oxygène", "Le dioxyde de carbone", "L'argon"], "L'azote représente environ 78 % de l'air."),
+      mc("Quel est le plus grand organe du corps humain ?", "La peau", ["Le foie", "Le poumon", "L'intestin"], "La peau couvre environ 2 m² chez l'adulte."),
+      mc("Qui a formulé la théorie de la relativité ?", "Albert Einstein", ["Isaac Newton", "Galilée", "Niels Bohr"], "La relativité restreinte date de 1905."),
+      mc("À quelle température l'eau bout-elle à pression normale ?", "100 °C", ["90 °C", "110 °C", "120 °C"], "C'est à 1 atmosphère au niveau de la mer."),
+      mc("Quelle planète est surnommée la planète rouge ?", "Mars", ["Vénus", "Jupiter", "Mercure"], "Sa couleur vient de l'oxyde de fer."),
+      mc("Que signifie l'acronyme ADN ?", "Acide désoxyribonucléique", ["Acide diazoté nucléique", "Amino-désoxyribose nucléique", "Acide dinucléique azoté"], "L'ADN porte l'information génétique.")
+    );
+    QUESTION_BANK.sports.push(
+      mc("Combien de joueurs par équipe sur le terrain au football ?", "11", ["9", "10", "12"], "Chaque équipe aligne 11 joueurs, gardien inclus."),
+      mc("Quel pays a accueilli les Jeux Olympiques d'été de 2024 ?", "La France", ["Le Japon", "Les États-Unis", "L'Australie"], "Les JO ont eu lieu à Paris."),
+      mc("Quel sport se joue à Roland-Garros ?", "Le tennis", ["Le golf", "Le badminton", "Le squash"], "C'est un tournoi du Grand Chelem sur terre battue."),
+      mc("Quelle est la distance d'un marathon ?", "42,195 km", ["40 km", "45 km", "50 km"], "Cette distance est fixée depuis 1921."),
+      mc("Quel pays a remporté la Coupe du monde de football 1998 ?", "La France", ["Le Brésil", "L'Italie", "L'Allemagne"], "La France a battu le Brésil 3-0 en finale."),
+      mc("Dans quelle équipe NBA Michael Jordan a-t-il remporté six titres ?", "Chicago Bulls", ["Los Angeles Lakers", "Boston Celtics", "New York Knicks"], "Il a été champion entre 1991 et 1998."),
+      mc("Combien de points vaut un essai au rugby à XV ?", "5", ["3", "4", "7"], "La transformation ajoute 2 points."),
+      mc("Dans quel sport Tiger Woods est-il champion ?", "Le golf", ["Le tennis", "Le baseball", "Le basket"], "Il a remporté 15 tournois majeurs.")
+    );
+
+    /* --- Lot 2 de questions (format compact) --- */
+    const qs = (cat, txt) => txt.trim().split("\n").forEach(l => { const [q, r, a, b, c, e] = l.split("|"); QUESTION_BANK[cat].push(mc(q.trim(), r, [a, b, c], e || "")); });
+    const ms = (cat, txt) => txt.trim().split("\n").forEach(l => { const [q, n, la, lo, e] = l.split("|"); QUESTION_BANK[cat].push(mp(q, n, +la, +lo, e || "")); });
+    const fls = txt => txt.trim().split("\n").forEach(l => { const [c, r, a, b, d] = l.split("|"); QUESTION_BANK.flags.push(fl(c, r, [a, b, d])); });
+
+    qs("general", `
+Combien de jours compte une année bissextile ?|366|365|364|367
+Quel est le plus grand désert chaud du monde ?|Le Sahara|Le Gobi|Le Kalahari|L'Atacama
+Quel est le plus petit pays du monde ?|Le Vatican|Monaco|Saint-Marin|Malte
+Quelle est la capitale du Brésil ?|Brasilia|Rio de Janeiro|São Paulo|Salvador
+Quel est l'animal terrestre le plus rapide ?|Le guépard|Le lion|L'antilope|Le cheval
+Combien de couleurs compte l'arc-en-ciel ?|7|5|6|8
+Quel est le plus grand pays d'Afrique par sa superficie ?|L'Algérie|Le Soudan|La RD Congo|La Libye
+Quel est le plus grand mammifère du monde ?|La baleine bleue|L'éléphant d'Afrique|Le cachalot|La girafe
+Quelle est la capitale de la Turquie ?|Ankara|Istanbul|Izmir|Bursa
+Quel métal est liquide à température ambiante ?|Le mercure|Le plomb|L'étain|Le zinc
+Quel pays possède le plus de fuseaux horaires (outre-mer compris) ?|La France|La Russie|Les États-Unis|La Chine
+Quelle est la langue officielle du Brésil ?|Le portugais|L'espagnol|Le français|L'anglais
+Combien de côtés a un hexagone ?|6|5|7|8
+Quel est le plus petit océan du monde ?|L'océan Arctique|L'océan Indien|L'océan Atlantique|L'océan Pacifique
+Quelle ville est surnommée la Grosse Pomme ?|New York|Los Angeles|Chicago|Boston
+`);
+    qs("cinema", `
+Quel acteur incarne Iron Man dans le MCU ?|Robert Downey Jr.|Chris Evans|Chris Hemsworth|Mark Ruffalo
+Quel film de 1975 met en scène un requin sur une plage ?|Les Dents de la mer|Piranha|Deep Blue Sea|Orca
+Qui a réalisé 'Pulp Fiction' ?|Quentin Tarantino|Guy Ritchie|David Fincher|Oliver Stone
+Dans quel film entend-on 'Je suis ton père' ?|L'Empire contre-attaque|Un nouvel espoir|Le Retour du Jedi|La Menace fantôme
+Qui a réalisé 'Le Voyage de Chihiro' ?|Hayao Miyazaki|Isao Takahata|Makoto Shinkai|Satoshi Kon
+Quel acteur joue avec Omar Sy dans 'Intouchables' ?|François Cluzet|Jean Dujardin|Gad Elmaleh|Dany Boon
+Quelle actrice joue Katniss dans 'Hunger Games' ?|Jennifer Lawrence|Emma Stone|Shailene Woodley|Kristen Stewart
+Quel film d'animation met en scène Elsa et Anna ?|La Reine des neiges|Raiponce|Vaiana|Encanto
+Quel film met en scène le rat cuisinier Rémy ?|Ratatouille|Cars|Là-haut|Wall-E
+Qui joue le Joker dans 'The Dark Knight' ?|Heath Ledger|Joaquin Phoenix|Jared Leto|Jack Nicholson
+Quel acteur joue Forrest Gump ?|Tom Hanks|Tom Cruise|Kevin Costner|Robin Williams
+Quel film de 1993 ramène des dinosaures à la vie ?|Jurassic Park|Godzilla|King Kong|Le Monde perdu
+Qui a réalisé 'Le Fabuleux Destin d'Amélie Poulain' ?|Jean-Pierre Jeunet|Luc Besson|Michel Gondry|François Ozon
+Quelle actrice joue Hermione Granger ?|Emma Watson|Emma Stone|Emma Roberts|Bonnie Wright
+Quel studio produit les films du MCU ?|Marvel Studios|Warner Bros.|Sony Pictures|Lucasfilm
+`);
+    qs("gaming", `
+Quelle console Nintendo est sortie en 2017 ?|La Switch|La Wii U|La 3DS|La GameCube
+Comment s'appelle le hérisson bleu de Sega ?|Sonic|Tails|Knuckles|Shadow
+Quelle entreprise a créé la PlayStation ?|Sony|Sega|Microsoft|Nintendo
+Quel héros porte une tunique verte dans Hyrule ?|Link|Zelda|Ganon|Mario
+Quel jeu de Valve met en scène Gordon Freeman ?|Half-Life|Portal|Left 4 Dead|Team Fortress 2
+Quelle princesse Mario sauve-t-il le plus souvent ?|Peach|Daisy|Rosalina|Zelda
+Quel studio a créé 'Dark Souls' ?|FromSoftware|Capcom|Bandai Namco|Konami
+Quel jeu de 1980 met en scène un personnage jaune mangeur de points ?|Pac-Man|Space Invaders|Pong|Donkey Kong
+Quelle série met en scène la chasseuse de primes Samus Aran ?|Metroid|Kid Icarus|Star Fox|F-Zero
+Quel jeu de course utilise des carapaces et des bananes ?|Mario Kart|Need for Speed|Gran Turismo|Forza Horizon
+Quelle entreprise a créé 'Assassin's Creed' ?|Ubisoft|Electronic Arts|Rockstar Games|Square Enix
+Quel studio a créé 'Overwatch' ?|Blizzard|Riot Games|Valve|Epic Games
+Comment s'appelle le héros de 'Metal Gear Solid' ?|Solid Snake|Big Boss|Raiden|Ocelot
+Quel jeu Rockstar se déroule dans l'Ouest américain de 1899 ?|Red Dead Redemption 2|GTA IV|Bully|L.A. Noire
+Quelle console est la plus vendue de l'histoire ?|PlayStation 2|Nintendo DS|Game Boy|Wii|Environ 155 millions d'unités vendues.
+`);
+    qs("art", `
+Qui a peint 'Les Nymphéas' ?|Claude Monet|Édouard Manet|Pierre-Auguste Renoir|Edgar Degas
+Qui a écrit 'Le Comte de Monte-Cristo' ?|Alexandre Dumas|Victor Hugo|Honoré de Balzac|Stendhal
+Qui a peint 'La Naissance de Vénus' ?|Botticelli|Raphaël|Titien|Léonard de Vinci
+Qui a écrit 'Germinal' ?|Émile Zola|Gustave Flaubert|Guy de Maupassant|Alphonse Daudet
+Qui a peint 'Le Cri' ?|Edvard Munch|Gustav Klimt|Egon Schiele|Paul Gauguin
+Qui a peint 'La Jeune Fille à la perle' ?|Johannes Vermeer|Rembrandt|Frans Hals|Jan van Eyck
+Qui a écrit 'Madame Bovary' ?|Gustave Flaubert|Stendhal|Émile Zola|George Sand
+Qui a peint 'La Ronde de nuit' ?|Rembrandt|Vermeer|Rubens|Van Dyck
+Dans quelle ville se trouve le musée du Prado ?|Madrid|Barcelone|Séville|Lisbonne
+Qui a écrit 'Don Quichotte' ?|Miguel de Cervantes|Lope de Vega|Federico García Lorca|Gabriel García Márquez
+Qui a écrit 'Les Fleurs du mal' ?|Charles Baudelaire|Arthur Rimbaud|Paul Verlaine|Stéphane Mallarmé
+Quel artiste pop est célèbre pour ses boîtes de soupe Campbell ?|Andy Warhol|Roy Lichtenstein|Jackson Pollock|Keith Haring
+Qui a écrit '1984' ?|George Orwell|Aldous Huxley|Ray Bradbury|H. G. Wells
+Quel peintre est célèbre pour ses danseuses ?|Edgar Degas|Paul Cézanne|Camille Pissarro|Alfred Sisley
+Dans quelle ville se trouve la Sagrada Família ?|Barcelone|Madrid|Séville|Valence
+`);
+    qs("history", `
+Quel roi de France était surnommé le Roi-Soleil ?|Louis XIV|Louis XVI|Louis XV|Henri IV
+En quelle année a débuté la Première Guerre mondiale ?|1914|1912|1916|1918
+Qui fut le premier président des États-Unis ?|George Washington|Abraham Lincoln|Thomas Jefferson|John Adams
+En quelle année les États-Unis ont-ils proclamé leur indépendance ?|1776|1783|1765|1789
+Quel paquebot a coulé en 1912 lors de son voyage inaugural ?|Le Titanic|Le Lusitania|Le Britannic|Le Bismarck
+Qui a dirigé la France libre pendant la Seconde Guerre mondiale ?|Charles de Gaulle|Philippe Pétain|Jean Moulin|Georges Clemenceau
+En quelle année a eu lieu la révolution russe d'Octobre ?|1917|1905|1921|1914
+Quelle reine a régné de 1837 à 1901 sur le Royaume-Uni ?|Victoria|Élisabeth Ire|Élisabeth II|Anne
+En quelle année a eu lieu le débarquement de Normandie ?|1944|1942|1943|1945
+Qui fut le premier homme dans l'espace ?|Youri Gagarine|Neil Armstrong|Alan Shepard|Buzz Aldrin
+`);
+    ms("history", `
+Placez votre repère sur Pompéi, détruite par le Vésuve.|Pompéi|40.751|14.487|La ville a été ensevelie en 79 apr. J.-C.
+Placez votre repère sur Stonehenge.|Stonehenge (Angleterre)|51.179|-1.826|Ce monument néolithique date d'environ 3000 av. J.-C.
+Placez votre repère sur la Cité interdite.|Pékin|39.916|116.397|C'était le palais des empereurs de Chine.
+Placez votre repère sur le Machu Picchu.|Machu Picchu (Pérou)|-13.163|-72.545|Cette cité inca date du XVe siècle.
+Placez votre repère sur l'antique Carthage.|Carthage (Tunisie)|36.853|10.323|Carthage fut détruite par Rome en 146 av. J.-C.
+`);
+    qs("geography", `
+Quel est le plus long fleuve d'Amérique du Sud ?|L'Amazone|L'Orénoque|Le Paraná|Le São Francisco
+Quelle est la capitale du Portugal ?|Lisbonne|Porto|Faro|Coimbra
+Dans quel pays se trouve Nairobi ?|Le Kenya|La Tanzanie|L'Ouganda|L'Éthiopie
+Quel est le plus grand lac d'Afrique ?|Le lac Victoria|Le lac Tanganyika|Le lac Malawi|Le lac Tchad
+Quelle chaîne de montagnes traverse l'Amérique du Sud ?|Les Andes|Les Rocheuses|L'Himalaya|Les Alpes
+Quelle est la capitale de la Norvège ?|Oslo|Bergen|Stockholm|Helsinki
+Quel détroit sépare l'Espagne du Maroc ?|Le détroit de Gibraltar|Le Bosphore|Le détroit de Messine|Le détroit d'Ormuz
+Quelle est la capitale de la Thaïlande ?|Bangkok|Hanoï|Jakarta|Manille
+Quel pays est surnommé le pays du Soleil-Levant ?|Le Japon|La Corée du Sud|La Chine|Le Vietnam
+`);
+    ms("geography", `
+Placez votre repère sur Londres.|Londres|51.507|-0.128|Londres est la capitale du Royaume-Uni.
+Placez votre repère sur Berlin.|Berlin|52.520|13.405|Berlin est la capitale de l'Allemagne.
+Placez votre repère sur Le Caire.|Le Caire|30.044|31.236|Le Caire est la capitale de l'Égypte.
+Placez votre repère sur Buenos Aires.|Buenos Aires|-34.604|-58.382|Buenos Aires est la capitale de l'Argentine.
+Placez votre repère sur Istanbul.|Istanbul|41.008|28.978|Istanbul est à cheval sur l'Europe et l'Asie.
+Placez votre repère sur Mumbai.|Mumbai|19.076|72.878|Mumbai est la plus grande ville d'Inde par sa population.
+`);
+    fls(`
+nl|Pays-Bas|Luxembourg|Russie|Croatie
+be|Belgique|Allemagne|Roumanie|Espagne
+pt|Portugal|Espagne|Mexique|Italie
+at|Autriche|Pologne|Lettonie|Pérou
+ie|Irlande|Italie|Côte d'Ivoire|Inde
+pl|Pologne|Indonésie|Monaco|Autriche
+gr|Grèce|Finlande|Uruguay|Israël
+no|Norvège|Islande|Danemark|Suède
+dk|Danemark|Suisse|Norvège|Islande
+fi|Finlande|Suède|Grèce|Estonie
+cn|Chine|Vietnam|Turquie|Maroc
+au|Australie|Nouvelle-Zélande|Royaume-Uni|Fidji
+nz|Nouvelle-Zélande|Australie|Fidji|Royaume-Uni
+eg|Égypte|Irak|Syrie|Yémen
+ng|Nigeria|Ghana|Cameroun|Sénégal
+`);
+    qs("music", `
+Quel groupe a chanté 'Wonderwall' ?|Oasis|Blur|Radiohead|Coldplay
+Qui a chanté 'Like a Prayer' ?|Madonna|Cher|Whitney Houston|Cyndi Lauper
+Quel chanteur est surnommé 'The King' ?|Elvis Presley|Johnny Cash|Chuck Berry|Little Richard
+Quel instrument est associé à Jimi Hendrix ?|La guitare électrique|Le saxophone|La batterie|Le piano
+Quel duo français a sorti 'One More Time' ?|Daft Punk|Air|Justice|Cassius
+Qui a chanté 'Hello' en 2015 ?|Adele|Taylor Swift|Sia|Dua Lipa
+Qui a composé 'Les Quatre Saisons' ?|Vivaldi|Bach|Haendel|Mozart
+Qui a chanté 'La Vie en rose' ?|Édith Piaf|Dalida|Barbara|Juliette Gréco
+Quel groupe a chanté 'Hotel California' ?|Eagles|Fleetwood Mac|The Doors|Lynyrd Skynyrd
+Combien de touches compte un piano standard ?|88|76|92|100
+Qui est le chanteur du groupe U2 ?|Bono|Sting|Bruce Springsteen|Freddie Mercury
+Qui a chanté 'Alors on danse' ?|Stromae|Damso|Maître Gims|Soprano
+Qui a chanté 'Shake It Off' ?|Taylor Swift|Katy Perry|Ariana Grande|Selena Gomez
+Quel groupe a chanté 'Stairway to Heaven' ?|Led Zeppelin|Deep Purple|Black Sabbath|The Who
+Quelle chanteuse est surnommée 'Queen B' ?|Beyoncé|Rihanna|Nicki Minaj|Lizzo
+`);
+    qs("science", `
+Quelle planète est connue pour ses anneaux ?|Saturne|Jupiter|Uranus|Neptune
+Quel est le symbole chimique du fer ?|Fe|Fr|F|Ir
+Quelle est la plus grande planète du système solaire ?|Jupiter|Saturne|Neptune|Uranus
+Combien de chromosomes compte une cellule humaine ?|46|23|44|48
+Qui a découvert la pénicilline ?|Alexander Fleming|Louis Pasteur|Marie Curie|Robert Koch
+Quelle est l'unité de mesure de la force ?|Le newton|Le joule|Le watt|Le pascal
+Quel gaz les plantes absorbent-elles pour la photosynthèse ?|Le dioxyde de carbone|L'oxygène|L'azote|L'hydrogène
+Quelle est la formule du sel de table ?|NaCl|KCl|CaCO3|NaOH
+Quelle particule porte une charge négative ?|L'électron|Le proton|Le neutron|Le photon
+Combien de dents compte un adulte, dents de sagesse comprises ?|32|28|30|36
+Dans quelle galaxie se trouve le système solaire ?|La Voie lactée|Andromède|Le Triangle|Le Grand Nuage de Magellan
+Quel est l'os le plus long du corps humain ?|Le fémur|Le tibia|L'humérus|Le radius
+Quelle scientifique a reçu deux prix Nobel en sciences différentes ?|Marie Curie|Rosalind Franklin|Irène Joliot-Curie|Lise Meitner
+Quel organe filtre le sang pour produire l'urine ?|Le rein|Le foie|La rate|Le pancréas
+Quel élément a pour symbole chimique O ?|L'oxygène|L'or|L'osmium|L'oxyde
+`);
+    qs("sports", `
+Combien de joueurs par équipe sur le terrain au volley-ball ?|6|5|7|8
+Quelle couleur porte le leader du Tour de France ?|Jaune|Vert|Rouge|Blanc
+Quel pays a remporté la Coupe du monde de football 2014 ?|L'Allemagne|L'Argentine|Le Brésil|Les Pays-Bas
+Combien de trous compte un parcours de golf standard ?|18|9|12|24
+Combien de minutes dure le temps réglementaire d'un match de football ?|90|80|100|120
+Dans quelle ville étaient prévus les JO d'été de 2020 ?|Tokyo|Rio|Londres|Pékin
+Quel joueur a remporté 8 Ballons d'or ?|Lionel Messi|Cristiano Ronaldo|Michel Platini|Johan Cruyff
+Quel sport se joue avec un volant ?|Le badminton|Le squash|Le tennis de table|Le padel
+À quelle hauteur se trouve le panier de basket ?|3,05 m|2,75 m|3,50 m|2,50 m
+Combien d'anneaux compte le drapeau olympique ?|5|4|6|7
+Quel pays a remporté l'Euro 2016 ?|Le Portugal|La France|L'Allemagne|L'Italie
+Dans quel sport marque-t-on un 'ippon' ?|Le judo|Le karaté|Le taekwondo|Le sumo
+Avec quel objet joue-t-on au hockey sur glace ?|Un palet|Une balle|Un volant|Une boule
+Combien de sets faut-il gagner en Grand Chelem chez les hommes ?|3|2|4|5
+Quel pays est le berceau du sumo ?|Le Japon|La Chine|La Corée du Sud|La Thaïlande
+`);
+
+    /* --- Lot 3 de questions --- */
+    qs("general", `
+Quelle est la capitale de la Suisse ?|Berne|Zurich|Genève|Bâle
+Combien de minutes compte une journée ?|1 440|1 240|1 640|1 140
+Quel est le plus grand continent du monde ?|L'Asie|L'Afrique|L'Amérique du Nord|L'Europe
+Quelle est la capitale de l'Autriche ?|Vienne|Salzbourg|Graz|Innsbruck
+Quel oiseau est le symbole de la paix ?|La colombe|Le cygne|L'aigle|Le hibou
+Quel fruit est l'ingrédient principal du guacamole ?|L'avocat|La banane|La mangue|La papaye
+Combien de mois de l'année comptent 31 jours ?|7|6|8|5
+Quel est le plus grand pays d'Amérique du Sud ?|Le Brésil|L'Argentine|Le Pérou|La Colombie
+Quel pays est célèbre pour ses champs de tulipes ?|Les Pays-Bas|La Belgique|Le Danemark|L'Allemagne
+Combien de cases compte un échiquier ?|64|49|81|100
+Quelle est la capitale de la Grèce ?|Athènes|Thessalonique|Patras|Héraklion
+Quelle est la capitale de la Pologne ?|Varsovie|Cracovie|Gdansk|Poznań
+Quel est le point culminant de la France métropolitaine ?|Le mont Blanc|Le Pic du Midi|Le Puy de Dôme|Le Mont Ventoux
+Quel est le plus grand lac d'eau douce du monde par sa surface ?|Le lac Supérieur|Le lac Victoria|Le lac Baïkal|Le lac Michigan
+Quelle est la capitale du Pérou ?|Lima|Cusco|Quito|La Paz
+`);
+    qs("cinema", `
+Qui joue Jack Dawson dans 'Titanic' ?|Leonardo DiCaprio|Brad Pitt|Matt Damon|Johnny Depp
+Quel film met en scène Marty McFly ?|Retour vers le futur|Terminator|E.T.|Les Goonies
+Qui a réalisé 'Jurassic Park' ?|Steven Spielberg|George Lucas|Robert Zemeckis|Ron Howard
+Quel personnage dit 'Hasta la vista, baby' ?|Le Terminator|Rambo|RoboCop|Predator
+Quel film met en scène le clown Pennywise ?|Ça|Saw|Scream|Halloween
+Quelle actrice joue Black Widow dans le MCU ?|Scarlett Johansson|Gal Gadot|Elizabeth Olsen|Brie Larson
+Quel film d'animation met en scène un ogre vert ?|Shrek|Monstres & Cie|Hercule|Kung Fu Panda
+Qui joue Indiana Jones ?|Harrison Ford|Tom Selleck|Kurt Russell|Sean Connery
+Quel film met en scène un robot qui nettoie les déchets sur Terre ?|WALL-E|Robots|Astro Boy|Chappie
+Qui joue James Bond dans 'Casino Royale' (2006) ?|Daniel Craig|Pierce Brosnan|Roger Moore|Timothy Dalton
+Quel film français avec Jean Dujardin a remporté l'Oscar du meilleur film en 2012 ?|The Artist|Intouchables|OSS 117|Le Bruit des glaçons
+Quel film d'horreur de 1980 se déroule à l'hôtel Overlook ?|Shining|Psychose|L'Exorciste|Les Griffes de la nuit
+Qui a réalisé 'Edward aux mains d'argent' ?|Tim Burton|Wes Anderson|David Lynch|Sam Mendes
+Quelle actrice joue Mia dans 'La La Land' ?|Emma Stone|Amy Adams|Anne Hathaway|Margot Robbie
+Quel film de Christopher Nolan se déroule pendant l'évacuation de 1940 ?|Dunkerque|Tenet|Memento|Insomnia
+`);
+    qs("gaming", `
+Quel jeu met en scène Steve, des creepers et des blocs ?|Minecraft|Roblox|Terraria|Fortnite
+Dans quelle série incarne-t-on Kratos ?|God of War|Devil May Cry|Darksiders|Bayonetta
+Qui a créé 'Les Sims' ?|Will Wright|Sid Meier|Peter Molyneux|Tim Schafer
+Quelle console utilise des manettes appelées Joy-Con ?|La Nintendo Switch|La Wii|La PS5|La Xbox Series X
+Quel FPS de 1993 met en scène le Doom Slayer ?|Doom|Quake|Wolfenstein 3D|Duke Nukem 3D
+Quel jeu de Bethesda se déroule en Bordeciel ?|Skyrim|Fallout 4|Starfield|Oblivion
+Quel éditeur a créé 'World of Warcraft' ?|Blizzard|Electronic Arts|Ubisoft|Bethesda
+Quel jeu de Nintendo met en scène Tom Nook ?|Animal Crossing|Stardew Valley|Harvest Moon|Pokémon Écarlate
+Quelle plateforme de Valve vend des jeux PC ?|Steam|Epic Games Store|GOG|Origin
+Quelle héroïne explore des tombeaux dans une célèbre série ?|Lara Croft|Samus Aran|Jill Valentine|Ellie
+Dans 'Among Us', comment appelle-t-on les ennemis ?|Les imposteurs|Les traîtres|Les infiltrés|Les saboteurs
+Quelle série de Capcom débute dans un manoir infesté de zombies ?|Resident Evil|Silent Hill|Dead Space|Alan Wake
+Quel jeu de combat oppose Ryu et Ken ?|Street Fighter|Mortal Kombat|Tekken|Soulcalibur
+Quel studio a créé 'Cyberpunk 2077' ?|CD Projekt Red|Ubisoft|Bethesda|Rockstar Games
+À quoi joue-t-on dans 'Rocket League' ?|Au football avec des voitures|Au basket avec des motos|Au rugby avec des karts|Au hockey avec des drones
+`);
+    qs("art", `
+Qui a peint 'Le Radeau de la Méduse' ?|Théodore Géricault|Eugène Delacroix|Jacques-Louis David|Gustave Courbet
+Qui a peint 'La Liberté guidant le peuple' ?|Eugène Delacroix|Théodore Géricault|Édouard Manet|Ingres
+Qui a écrit 'Les Trois Mousquetaires' ?|Alexandre Dumas|Jules Verne|Victor Hugo|Eugène Sue
+Qui a écrit 'Vingt mille lieues sous les mers' ?|Jules Verne|H. G. Wells|Alexandre Dumas|Maurice Leblanc
+Qui a peint 'Les Demoiselles d'Avignon' ?|Pablo Picasso|Henri Matisse|Georges Braque|Paul Cézanne
+Qui a peint 'Le Jardin des délices' ?|Jérôme Bosch|Pieter Bruegel|Albrecht Dürer|Jan van Eyck
+Qui a sculpté le 'David' de Florence ?|Michel-Ange|Donatello|Le Bernin|Verrocchio
+Qui a écrit 'Le Rouge et le Noir' ?|Stendhal|Balzac|Flaubert|Victor Hugo
+Qui a écrit 'Notre-Dame de Paris' ?|Victor Hugo|Alexandre Dumas|Théophile Gautier|Balzac
+Qui a peint 'Impression, soleil levant' ?|Claude Monet|Pierre-Auguste Renoir|Camille Pissarro|Édouard Manet
+Qui a écrit 'Orgueil et Préjugés' ?|Jane Austen|Charlotte Brontë|Emily Brontë|Mary Shelley
+Quel écrivain a créé Sherlock Holmes ?|Arthur Conan Doyle|Agatha Christie|Edgar Allan Poe|Georges Simenon
+Qui a écrit le roman 'Le Seigneur des anneaux' ?|J. R. R. Tolkien|C. S. Lewis|George R. R. Martin|Terry Pratchett
+Quel architecte a conçu le musée Guggenheim de Bilbao ?|Frank Gehry|Renzo Piano|Zaha Hadid|Norman Foster
+Qui a écrit 'Les Liaisons dangereuses' ?|Choderlos de Laclos|Diderot|Voltaire|Rousseau
+`);
+    qs("history", `
+Quel pharaon est célèbre pour son masque funéraire en or ?|Toutânkhamon|Ramsès II|Khéops|Akhenaton
+En quelle année Charlemagne est-il couronné empereur ?|800|732|987|1066
+Quelle bataille de 1066 a vu Guillaume le Conquérant s'imposer en Angleterre ?|Hastings|Azincourt|Crécy|Poitiers
+Quelle héroïne française a été brûlée à Rouen en 1431 ?|Jeanne d'Arc|Aliénor d'Aquitaine|Catherine de Médicis|Marie-Antoinette
+Qui dirigeait l'Allemagne nazie ?|Adolf Hitler|Otto von Bismarck|Paul von Hindenburg|Erich Ludendorff
+En quelle année l'URSS s'est-elle dissoute ?|1991|1989|1993|1985
+Quel leader a mené l'indépendance de l'Inde par la non-violence ?|Gandhi|Nehru|Jinnah|Subhas Chandra Bose
+Quel explorateur a atteint l'Inde par la mer en 1498 ?|Vasco de Gama|Magellan|Christophe Colomb|Pedro Cabral
+En quelle année est mort Louis XIV ?|1715|1789|1643|1774
+Quelle guerre a opposé le Nord et le Sud des États-Unis de 1861 à 1865 ?|La guerre de Sécession|La guerre d'indépendance|La guerre de 1812|La guerre hispano-américaine
+`);
+    ms("history", `
+Placez votre repère sur Jérusalem.|Jérusalem|31.778|35.235|Jérusalem est une ville sainte pour trois religions.
+Placez votre repère sur Delphes, siège du célèbre oracle.|Delphes (Grèce)|38.482|22.501|Le sanctuaire d'Apollon y attirait les Grecs.
+Placez votre repère sur Angkor Vat.|Angkor Vat (Cambodge)|13.412|103.867|Ce temple date du XIIe siècle.
+Placez votre repère sur Chichén Itzá.|Chichén Itzá (Mexique)|20.684|-88.568|C'est une grande cité maya.
+Placez votre repère sur Alésia, où Vercingétorix fut vaincu.|Alésia (Bourgogne)|47.537|4.500|Jules César y a vaincu Vercingétorix en 52 av. J.-C.
+`);
+    qs("geography", `
+Quelle est la capitale de la Suède ?|Stockholm|Göteborg|Malmö|Uppsala
+Quel est le plus haut sommet d'Afrique ?|Le Kilimandjaro|Le mont Kenya|Le Toubkal|L'Elgon
+Quel fleuve traverse Paris ?|La Seine|La Loire|Le Rhône|La Garonne
+Quelle est la plus grande île du monde ?|Le Groenland|Madagascar|Bornéo|La Nouvelle-Guinée
+Quel désert s'étend sur la Mongolie et le nord de la Chine ?|Le Gobi|Le Thar|Le Kalahari|Le Namib
+Quelle est la capitale de l'Irlande ?|Dublin|Cork|Belfast|Galway
+Quel est le plus long fleuve d'Asie ?|Le Yangzi Jiang|Le Mékong|Le Gange|L'Indus
+Quel pays porte le nom de la ligne imaginaire qui le traverse ?|L'Équateur|Le Cap-Vert|Le Pérou|Le Ghana
+Quelle est la plus haute chute d'eau du monde ?|Le Salto Ángel|Les chutes du Niagara|Les chutes Victoria|Les chutes d'Iguazú
+`);
+    ms("geography", `
+Placez votre repère sur Lisbonne.|Lisbonne|38.722|-9.139|Lisbonne est la capitale du Portugal.
+Placez votre repère sur Vienne.|Vienne|48.208|16.374|Vienne est la capitale de l'Autriche.
+Placez votre repère sur Nairobi.|Nairobi|-1.286|36.817|Nairobi est la capitale du Kenya.
+Placez votre repère sur Bangkok.|Bangkok|13.756|100.502|Bangkok est la capitale de la Thaïlande.
+Placez votre repère sur Lima.|Lima|-12.046|-77.043|Lima est la capitale du Pérou.
+Placez votre repère sur Mexico.|Mexico|19.433|-99.133|Mexico est la capitale du Mexique.
+`);
+    fls(`
+ru|Russie|Slovénie|Slovaquie|Serbie
+ua|Ukraine|Suède|Kazakhstan|Sierra Leone
+ro|Roumanie|Tchad|Andorre|Moldavie
+hu|Hongrie|Bulgarie|Iran|Lituanie
+cz|Tchéquie|Pologne|Philippines|Slovaquie
+hr|Croatie|Serbie|Slovaquie|Russie
+il|Israël|Grèce|Finlande|Uruguay
+th|Thaïlande|Costa Rica|Russie|Paraguay
+id|Indonésie|Pologne|Yémen|Pérou
+vn|Vietnam|Chine|Maroc|Turquie
+cl|Chili|Cuba|Panama|Costa Rica
+co|Colombie|Équateur|Venezuela|Arménie
+ma|Maroc|Vietnam|Turquie|Tunisie
+dz|Algérie|Tunisie|Pakistan|Mauritanie
+ke|Kenya|Malawi|Afrique du Sud|Zimbabwe
+`);
+    qs("music", `
+Qui a chanté 'Purple Rain' ?|Prince|Michael Jackson|Lenny Kravitz|Stevie Wonder
+Quel groupe a chanté 'Sweet Child O' Mine' ?|Guns N' Roses|Aerosmith|Mötley Crüe|Bon Jovi
+Qui a chanté 'Bad Guy' ?|Billie Eilish|Olivia Rodrigo|Lorde|Doja Cat
+Quel groupe sud-coréen a chanté 'Dynamite' ?|BTS|Blackpink|EXO|Twice
+Quel compositeur a écrit 'La Flûte enchantée' ?|Mozart|Beethoven|Haydn|Schubert
+Quel rappeur a sorti 'Lose Yourself' ?|Eminem|Jay-Z|50 Cent|Kanye West
+Qui chante 'Dernière danse' ?|Indila|Louane|Zaz|Shy'm
+Quel groupe a chanté 'Don't Stop Believin'' ?|Journey|Toto|Foreigner|Boston
+Combien de membres compte le groupe des Beatles ?|4|3|5|6
+Quel groupe a chanté 'Highway to Hell' ?|AC/DC|Kiss|Van Halen|Scorpions
+Qui a chanté 'Billie Jean' ?|Michael Jackson|Prince|Lionel Richie|Stevie Wonder
+Qui a chanté 'Imagine' ?|John Lennon|Paul McCartney|George Harrison|Ringo Starr
+Quel instrument à cordes est le plus grave d'un quatuor à cordes ?|Le violoncelle|Le violon|L'alto|La harpe
+Qui a chanté 'Blinding Lights' ?|The Weeknd|Drake|Bruno Mars|Post Malone
+Quel DJ suédois a sorti 'Wake Me Up' ?|Avicii|David Guetta|Calvin Harris|Martin Garrix
+`);
+    qs("science", `
+Quel est le symbole chimique de l'argent ?|Ag|Ar|Au|Al
+Quelle est la vitesse approximative du son dans l'air ?|340 m/s|3 400 m/s|34 m/s|300 000 km/s
+À quelle température l'eau gèle-t-elle à pression normale ?|0 °C|-10 °C|10 °C|32 °C
+Quelle planète est la plus éloignée du Soleil ?|Neptune|Uranus|Saturne|Mars
+Quelle est la formule du dioxyde de carbone ?|CO2|CO|C2O|O2C
+Quel organe produit l'insuline ?|Le pancréas|Le foie|Le rein|La rate
+Qui a énoncé la loi de la gravitation universelle ?|Isaac Newton|Galilée|Johannes Kepler|Copernic
+Quel est l'élément chimique le plus léger ?|L'hydrogène|L'hélium|Le lithium|Le carbone
+Dans quelle couche de l'atmosphère se trouve la couche d'ozone ?|La stratosphère|La troposphère|La mésosphère|L'exosphère
+Quelle est l'unité de mesure de l'énergie ?|Le joule|Le newton|Le watt|Le volt
+Qui a établi le tableau périodique des éléments ?|Dmitri Mendeleïev|Antoine Lavoisier|Niels Bohr|John Dalton
+À quel type de roche appartient le granit ?|Magmatique|Sédimentaire|Métamorphique|Organique
+Quel animal est un mammifère ?|La chauve-souris|Le requin|Le pingouin|Le crocodile
+Quelle vitamine est produite par la peau grâce au soleil ?|La vitamine D|La vitamine C|La vitamine A|La vitamine B12
+Quelle est l'unité de mesure de la fréquence ?|Le hertz|Le tesla|Le lumen|Le coulomb
+`);
+    qs("sports", `
+Quelle nation a remporté le plus de Coupes du monde de football masculines ?|Le Brésil|L'Allemagne|L'Italie|L'Argentine
+Quel tournoi de tennis se joue sur gazon à Londres ?|Wimbledon|Roland-Garros|L'US Open|L'Open d'Australie
+Combien de joueurs compte une équipe de rugby à XV ?|15|13|11|7
+Dans quelle discipline Usain Bolt est-il champion ?|L'athlétisme|La natation|Le cyclisme|Le football
+Quel nageur a remporté 23 médailles d'or olympiques ?|Michael Phelps|Ian Thorpe|Mark Spitz|Ryan Lochte
+Quel pilote a remporté 7 titres de champion du monde de F1 ?|Lewis Hamilton|Sebastian Vettel|Ayrton Senna|Alain Prost
+Dans quel sport combat-on sur un tatami ?|Le judo|La boxe|Le golf|Le ski
+Dans quelle ville se joue l'Open d'Australie de tennis ?|Melbourne|Sydney|Brisbane|Perth
+Quelle est la longueur d'un tour de piste d'athlétisme standard ?|400 m|200 m|500 m|800 m
+Quel club de football est surnommé les Merengues ?|Real Madrid|FC Barcelone|Atlético Madrid|Valence CF
+Combien de joueurs par équipe sur le terrain au basket 3x3 ?|3|4|5|6
+Quel sport pratique le Français Léon Marchand ?|La natation|Le cyclisme|L'athlétisme|Le triathlon
+Quelle ville accueillera les JO d'été de 2028 ?|Los Angeles|Brisbane|Tokyo|Paris
+Quel pays a remporté la Coupe du monde de rugby 2023 ?|L'Afrique du Sud|La Nouvelle-Zélande|La France|L'Angleterre
+Combien de joueurs par équipe sur le terrain au handball ?|7|6|5|11
+`);
+
+    /* --- Lot 4 de questions (avec explications) --- */
+    qs("general", `
+Quelle est la capitale de la Belgique ?|Bruxelles|Anvers|Liège|Gand|Bruxelles accueille plusieurs institutions de l'Union européenne.
+Combien de secondes compte une heure ?|3 600|360|6 000|1 440|Une heure compte 60 minutes de 60 secondes.
+Quel est le plus grand désert du monde, toutes catégories confondues ?|L'Antarctique|Le Sahara|L'Arctique|Le Gobi|L'Antarctique est un désert polaire d'environ 14 millions de km².
+Quelle est la capitale du Danemark ?|Copenhague|Aarhus|Odense|Aalborg|Copenhague est située sur l'île de Sjælland.
+Quelle mer borde Marseille ?|La Méditerranée|L'Atlantique|La Manche|La mer du Nord|Marseille est un grand port méditerranéen.
+Quel est le plus grand oiseau du monde ?|L'autruche|L'albatros|Le condor|L'émeu|L'autruche peut dépasser 2,5 m et 100 kg.
+Dans quel pays est née la pizza moderne ?|L'Italie|La Grèce|La France|L'Espagne|La pizza moderne est née à Naples.
+Combien de lettres compte l'alphabet français ?|26|24|28|25|Il compte 26 lettres.
+Quelle est la capitale de la Hongrie ?|Budapest|Prague|Bucarest|Belgrade|Budapest est traversée par le Danube.
+`);
+    qs("cinema", `
+Qui a réalisé 'Le Silence des agneaux' ?|Jonathan Demme|David Fincher|Ridley Scott|Brian De Palma|Le film a remporté les cinq grands Oscars.
+Qui a réalisé 'Fight Club' ?|David Fincher|Christopher Nolan|Darren Aronofsky|Danny Boyle|Fight Club date de 1999.
+Quel film de 2019 met en scène Arthur Fleck ?|Joker|1917|Once Upon a Time... in Hollywood|Ad Astra|Joaquin Phoenix y a remporté l'Oscar du meilleur acteur.
+Qui a réalisé 'La Liste de Schindler' ?|Steven Spielberg|Roman Polanski|Oliver Stone|Sidney Pollack|Le film est sorti en 1993.
+Quel film de Luc Besson met en scène Leeloo ?|Le Cinquième Élément|Léon|Nikita|Subway|Milla Jovovich y joue Leeloo.
+Quel film d'animation japonais met en scène Totoro ?|Mon voisin Totoro|Princesse Mononoké|Ponyo|Le Château ambulant|Il est sorti en 1988.
+Quelle actrice joue dans 'Pretty Woman' ?|Julia Roberts|Meg Ryan|Sandra Bullock|Demi Moore|Le film est sorti en 1990 avec Richard Gere.
+Qui joue Jason Bourne ?|Matt Damon|Tom Cruise|Ben Affleck|Mark Wahlberg|Il incarne l'agent amnésique de la saga Bourne.
+Quel acteur joue Rocky Balboa ?|Sylvester Stallone|Arnold Schwarzenegger|Dolph Lundgren|Bruce Willis|Stallone a aussi écrit le scénario du premier film.
+`);
+    qs("gaming", `
+Quel jeu de 1985 a lancé la saga Super Mario sur NES ?|Super Mario Bros.|Donkey Kong|Mario Bros.|Punch-Out!!|Il est sorti en 1985.
+Qui est l'ennemi principal de Mario ?|Bowser|Ganondorf|Wario|King K. Rool|Bowser enlève souvent la princesse Peach.
+Quel studio a créé 'Elden Ring' ?|FromSoftware|Capcom|Square Enix|Koei Tecmo|Le jeu est sorti en 2022.
+Quel jeu de tir de Riot Games est sorti en 2020 ?|Valorant|Overwatch|CS2|Apex Legends|Valorant est sorti en juin 2020.
+Quelle console a précédé la Nintendo Switch ?|La Wii U|La Wii|La 3DS|La GameCube|La Wii U est sortie en 2012.
+Quel éditeur a créé Rayman ?|Ubisoft|Cyanide|Focus Entertainment|Quantic Dream|Rayman a été imaginé par Michel Ancel chez Ubisoft.
+Quels jeux ont lancé la franchise Pokémon en 1996 au Japon ?|Pokémon Rouge et Vert|Digimon World|Yu-Gi-Oh!|Monster Rancher|Ils sont sortis sur Game Boy.
+Quel jeu de Naughty Dog met en scène Nathan Drake ?|Uncharted|The Last of Us|Horizon Zero Dawn|Ratchet & Clank|Uncharted est une série d'aventure de PlayStation.
+Quel est le frère jumeau de Mario ?|Luigi|Wario|Toad|Yoshi|Luigi porte une casquette et une salopette vertes.
+`);
+    qs("art", `
+Qui a écrit 'Le Père Goriot' ?|Honoré de Balzac|Stendhal|Émile Zola|Gustave Flaubert|Il fait partie de La Comédie humaine.
+Qui a peint 'Les Tournesols' ?|Vincent van Gogh|Paul Gauguin|Claude Monet|Henri Rousseau|Van Gogh en a peint plusieurs versions en 1888-1889.
+Qui a écrit 'Candide' ?|Voltaire|Rousseau|Diderot|Montesquieu|Candide est un conte philosophique de 1759.
+Qui a peint 'Le Déjeuner sur l'herbe' ?|Édouard Manet|Claude Monet|Gustave Courbet|Paul Cézanne|Le tableau a fait scandale en 1863.
+Qui a écrit 'Le Grand Meaulnes' ?|Alain-Fournier|Marcel Proust|André Gide|Romain Rolland|Le roman est paru en 1913.
+Qui a sculpté la 'Pietà' du Vatican ?|Michel-Ange|Le Bernin|Donatello|Canova|Michel-Ange l'a réalisée vers 1498-1499.
+Qui a écrit 'Frankenstein' ?|Mary Shelley|Bram Stoker|Jane Austen|Emily Brontë|Le roman est paru en 1818.
+Quel peintre a fondé le cubisme avec Picasso ?|Georges Braque|Henri Matisse|Fernand Léger|Marc Chagall|Ils ont lancé ce mouvement vers 1907-1908.
+Qui a écrit 'En attendant Godot' ?|Samuel Beckett|Eugène Ionesco|Jean Genet|Jean Anouilh|La pièce a été créée en 1953.
+`);
+    qs("history", `
+Quel empire Gengis Khan a-t-il fondé ?|L'Empire mongol|L'Empire ottoman|L'Empire perse|L'Empire byzantin|Il a fondé l'Empire mongol vers 1206.
+En quelle année a eu lieu le krach de Wall Street ?|1929|1919|1933|1939|Il a déclenché la Grande Dépression.
+En quelle année Louis XVI a-t-il été guillotiné ?|1793|1789|1792|1799|Il est exécuté le 21 janvier 1793.
+Qui était président des États-Unis pendant la guerre de Sécession ?|Abraham Lincoln|George Washington|Ulysses Grant|Theodore Roosevelt|Lincoln fut président de 1861 à 1865.
+Quel traité a été signé en 1919 avec l'Allemagne ?|Le traité de Versailles|Le traité de Vienne|Le traité de Rome|Le traité de Westphalie|Il a officiellement mis fin à la Première Guerre mondiale avec l'Allemagne.
+`);
+    ms("history", `
+Placez votre repère sur Verdun, théâtre d'une bataille de 1916.|Verdun|49.160|5.383|La bataille de Verdun a duré presque toute l'année 1916.
+Placez votre repère sur Gettysburg.|Gettysburg (Pennsylvanie)|39.831|-77.231|La bataille de juillet 1863 fut un tournant de la guerre de Sécession.
+Placez votre repère sur les ruines de Troie.|Troie (Turquie)|39.957|26.239|La cité est célèbre grâce à l'Iliade d'Homère.
+Placez votre repère sur Sparte.|Sparte (Grèce)|37.075|22.430|Sparte était une cité guerrière de la Grèce antique.
+`);
+    qs("geography", `
+Quelle est la capitale de l'Inde ?|New Delhi|Mumbai|Calcutta|Bangalore|New Delhi abrite le gouvernement indien.
+Quel océan borde la façade ouest de la France ?|L'Atlantique|Le Pacifique|L'océan Indien|L'Arctique|La France a une longue façade atlantique.
+Quel est le pays le plus peuplé d'Afrique ?|Le Nigeria|L'Éthiopie|L'Égypte|L'Afrique du Sud|Le Nigeria compte plus de 200 millions d'habitants.
+Quelle est la capitale de la Corée du Sud ?|Séoul|Busan|Pyongyang|Incheon|Séoul concentre une grande part de la population.
+Quelle est la plus grande île de la Méditerranée ?|La Sicile|La Sardaigne|Chypre|La Corse|La Sicile couvre environ 25 700 km².
+`);
+    ms("geography", `
+Placez votre repère sur Singapour.|Singapour|1.352|103.820|Singapour est une cité-État d'Asie du Sud-Est.
+Placez votre repère sur Reykjavik.|Reykjavik|64.147|-21.943|Reykjavik est la capitale de l'Islande.
+Placez votre repère sur Vancouver.|Vancouver|49.283|-123.121|Vancouver est sur la côte ouest du Canada.
+Placez votre repère sur Auckland.|Auckland|-36.848|174.763|Auckland est la plus grande ville de Nouvelle-Zélande.
+`);
+    fls(`
+pk|Pakistan|Turquie|Algérie|Mauritanie
+sa|Arabie saoudite|Pakistan|Iran|Irak
+ph|Philippines|Cuba|Tchéquie|Panama
+cu|Cuba|Philippines|Porto Rico|Chili
+sn|Sénégal|Mali|Cameroun|Ghana
+jm|Jamaïque|Afrique du Sud|Botswana|Tanzanie
+`);
+    qs("music", `
+Qui a chanté 'Poker Face' ?|Lady Gaga|Katy Perry|Britney Spears|Pink|Le titre est sorti en 2008.
+Quel groupe a chanté 'Paint It Black' ?|The Rolling Stones|The Kinks|The Animals|The Who|La chanson date de 1966.
+Qui a composé le 'Boléro' ?|Maurice Ravel|Claude Debussy|Erik Satie|Camille Saint-Saëns|Le Boléro date de 1928.
+Qui a chanté 'Sapés comme jamais' ?|Maître Gims|Soprano|Black M|Kendji Girac|Le titre est sorti en 2015.
+Quelle chanteuse a sorti l'album '21' ?|Adele|Amy Winehouse|Lana Del Rey|Duffy|L'album date de 2011.
+Quel groupe britannique a chanté 'Viva la Vida' ?|Coldplay|Muse|Keane|Snow Patrol|Le titre est sorti en 2008.
+Qui a chanté 'Halo' ?|Beyoncé|Rihanna|Alicia Keys|Kelly Clarkson|Halo est sorti en 2008.
+Combien de cordes a une basse électrique standard ?|4|5|6|8|La basse standard compte 4 cordes.
+Quel genre musical est né à La Nouvelle-Orléans ?|Le jazz|Le blues|Le rock|La country|Le jazz y est né au début du XXe siècle.
+`);
+    qs("science", `
+Quelle force nous attire vers le sol ?|La gravité|Le magnétisme|La friction|L'inertie|La gravité attire les masses entre elles.
+Quelle est la plus petite unité du vivant ?|La cellule|L'atome|L'organe|Le tissu|La cellule est l'unité de base des êtres vivants.
+Quel est le symbole chimique du potassium ?|K|P|Po|Pt|K vient du latin 'kalium'.
+Quel instrument mesure la température ?|Le thermomètre|Le baromètre|L'hygromètre|Le sismographe|Il mesure la chaleur en degrés.
+Combien de planètes telluriques compte le système solaire ?|4|3|5|8|Mercure, Vénus, la Terre et Mars.
+Qui a mis au point le vaccin contre la rage ?|Louis Pasteur|Edward Jenner|Alexander Fleming|Robert Koch|Pasteur l'a testé en 1885.
+Quel est le pH de l'eau pure ?|7|0|14|5|Un pH de 7 est neutre.
+Quelle est la formule chimique du méthane ?|CH4|C2H6|CO2|NH3|Le méthane est le plus simple des hydrocarbures.
+Quel est le rôle des globules rouges ?|Transporter l'oxygène|Combattre les infections|Coaguler le sang|Produire des hormones|Ils contiennent l'hémoglobine.
+`);
+    qs("sports", `
+Combien de joueurs par équipe sur la glace au hockey (gardien inclus) ?|6|5|7|11|Chaque équipe aligne 6 joueurs.
+Quel pays a inventé le judo ?|Le Japon|La Chine|La Corée|Le Brésil|Le judo a été créé par Jigoro Kano en 1882.
+Dans quel sport parle-t-on de 'par' ?|Le golf|Le bowling|Le billard|Le curling|Le par est le nombre de coups attendu sur un trou.
+Quel pays a remporté le plus de médailles d'or aux JO d'été ?|Les États-Unis|La Chine|L'URSS|La Grande-Bretagne|Les États-Unis dominent le tableau historique.
+Qui était le capitaine de la France championne du monde en 2018 ?|Hugo Lloris|Kylian Mbappé|Antoine Griezmann|Paul Pogba|Lloris a soulevé la coupe à Moscou.
+Dans quel pays est né le football moderne ?|L'Angleterre|Le Brésil|L'Italie|L'Allemagne|Les règles modernes datent de 1863 en Angleterre.
+Combien de joueurs compte une équipe de cricket sur le terrain ?|11|9|13|15|Chaque équipe aligne 11 joueurs.
+Quel boxeur est surnommé 'The Greatest' ?|Mohamed Ali|Mike Tyson|Joe Frazier|George Foreman|Ali a été trois fois champion du monde poids lourds.
+Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madrid|L'AC Milan|Liverpool|Le Bayern Munich|Le Real en compte 15 à ce jour.
+`);
+
+    const CATEGORIES = [
+      { id: "mixed", name: "Mix Général", icon: "fa-shuffle", color: "from-purple-500 to-indigo-600" },
+      { id: "general", name: "Culture Générale", icon: "fa-brain", color: "from-amber-500 to-orange-600" },
+      { id: "cinema", name: "Cinéma & Séries", icon: "fa-film", color: "from-red-500 to-rose-600" },
+      { id: "gaming", name: "Jeux Vidéo", icon: "fa-gamepad", color: "from-emerald-500 to-teal-600" },
+      { id: "art", name: "Art & Littérature", icon: "fa-palette", color: "from-pink-500 to-rose-500" },
+      { id: "history", name: "Histoire (Cartes)", icon: "fa-landmark", color: "from-yellow-600 to-amber-700" },
+      { id: "geography", name: "Géographie", icon: "fa-earth-americas", color: "from-blue-500 to-cyan-600" },
+      { id: "flags", name: "Drapeaux", icon: "fa-flag", color: "from-teal-500 to-emerald-600" },
+      { id: "music", name: "Musique", icon: "fa-music", color: "from-violet-500 to-purple-600" },
+      { id: "science", name: "Sciences", icon: "fa-atom", color: "from-cyan-500 to-blue-600" },
+      { id: "sports", name: "Sports & Esports", icon: "fa-trophy", color: "from-orange-500 to-amber-600" }
+    ];
+
+    /* =========================================================================
+       2. GLOBAL STATE & SYSTEM VARIABLES
+       ========================================================================= */
+    let selectedCategory = "mixed";
+    let botCount = 3;
+    let questionLimit = 10;
+    
+    let localPlayer = {
+      id: "player_" + Math.random().toString(36).substr(2, 6),
+      name: "Champion",
+      avatar: "🎮",
+      score: 0,
+      hasAnswered: false,
+      currentAnswer: null
+    };
+
+    let botPlayers = [];
+    let currentQuestions = [];
+    let currentQIndex = 0;
+    let timerInterval = null;
+    let timeLeft = 20;
+    let botTimeouts = [];
+    let roundActive = false;
+
+    // Leaflet Map variables
+    let leafletMap = null;
+    let currentPinMarker = null;
+    let selectedCoords = null;
+
+    // Multi-tab Broadcast Channel
+    const channel = new BroadcastChannel('quiz_party_channel');
+
+    /* =========================================================================
+       3. DOM INITIALIZATION & EVENTS
+       ========================================================================= */
+    document.addEventListener("DOMContentLoaded", () => {
+      renderCategoriesGrid();
+      setupEventListeners();
+      initMultiTabSync();
+    });
+
+    function renderCategoriesGrid() {
+      const grid = document.getElementById("categories-grid");
+      grid.innerHTML = "";
+
+      CATEGORIES.forEach(cat => {
+        const isSelected = cat.id === selectedCategory;
+        const btn = document.createElement("button");
+        btn.className = `cat-card p-4 rounded-2xl border text-left flex flex-col justify-between h-28 transition transform hover:-translate-y-1 ${
+          isSelected 
+            ? 'border-amber-400 bg-amber-500/20 shadow-lg shadow-amber-500/10' 
+            : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+        }`;
+        btn.onclick = () => selectCategory(cat.id);
+
+        btn.innerHTML = `
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr ${cat.color} flex items-center justify-center text-white text-sm shadow-md">
+            <i class="fa-solid ${cat.icon}"></i>
+          </div>
+          <span class="font-bold text-sm text-slate-200">${cat.name}</span>
+        `;
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectCategory(catId) {
+      selectedCategory = catId;
+      renderCategoriesGrid();
+    }
+
+    function setupEventListeners() {
+      // Avatar Picker
+      document.querySelectorAll('.avatar-opt').forEach(btn => {
+        btn.onclick = (e) => {
+          document.querySelectorAll('.avatar-opt').forEach(b => b.classList.replace('border-amber-500', 'border-transparent'));
+          e.currentTarget.classList.replace('border-transparent', 'border-amber-500');
+          localPlayer.avatar = e.currentTarget.textContent.trim();
+          document.getElementById('player-avatar').textContent = localPlayer.avatar;
+        };
+      });
+
+      // Name Input
+      document.getElementById('input-pseudo').addEventListener('input', (e) => {
+        localPlayer.name = e.target.value.trim() || "Champion";
+        document.getElementById('player-name').textContent = localPlayer.name;
+      });
+
+      // Start Game
+      document.getElementById('btn-start').onclick = startGame;
+
+      // Next Question / Finish Button
+      document.getElementById('btn-next-question').onclick = advanceToNextQuestion;
+
+      // Map Submission
+      document.getElementById('btn-submit-map').onclick = submitMapAnswer;
+    }
+
+    /* =========================================================================
+       4. GAME FLOW & BOT ENGINE
+       ========================================================================= */
+    function startGame() {
+      if (net.role === 'guest') return;
+      net.inGame = true;
+      botCount = parseInt(document.getElementById('select-bots').value);
+      questionLimit = parseInt(document.getElementById('select-count').value);
+
+      // Create Bot Players
+      const botNames = ["Robotix", "CyberSavant", "BrainBot", "NeoQuiz", "PixelMaster"];
+      const botAvatars = ["🤖", "👾", "💻", "⚡", "🛸"];
+      localPlayer.score = 0;
+      document.getElementById('player-score').textContent = '0 pts';
+      botPlayers = net.role === 'host' ? net.humans.map(h => Object.assign(h, { score: 0, hasAnswered: false, currentAnswer: null })) : [];
+
+      for (let i = 0; i < botCount; i++) {
+        botPlayers.push({
+          id: "bot_" + i,
+          name: botNames[i % botNames.length],
+          avatar: botAvatars[i % botAvatars.length],
+          score: 0,
+          isBot: true,
+          hasAnswered: false,
+          currentAnswer: null
+        });
+      }
+
+      // Prepare Questions
+      prepareQuestions();
+
+      // UI Switch
+      document.getElementById('view-lobby').classList.add('hidden');
+      document.getElementById('view-game').classList.remove('hidden');
+      document.getElementById('player-badge').classList.remove('hidden');
+
+      currentQIndex = 0;
+      loadQuestion(currentQIndex);
+    }
+
+    function prepareQuestions() {
+      let pool = [];
+      if (selectedCategory === "mixed") {
+        Object.values(QUESTION_BANK).forEach(catArray => {
+          pool = pool.concat(catArray);
+        });
+      } else {
+        pool = [...(QUESTION_BANK[selectedCategory] || QUESTION_BANK.general)];
+      }
+
+      // Shuffle Pool
+      const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+      shuffle(pool);
+      // Catégorie trop petite : on complète avec d'autres questions
+      if (pool.length < questionLimit) {
+        const extra = shuffle(Object.values(QUESTION_BANK).flat().filter(x => !pool.includes(x)));
+        pool = pool.concat(extra);
+      }
+      currentQuestions = pool.slice(0, questionLimit);
+    }
+
+    function loadQuestion(index) {
+      // Reset State
+      botTimeouts.forEach(clearTimeout);
+      botTimeouts = [];
+      roundActive = true;
+      localPlayer.hasAnswered = false;
+      localPlayer.currentAnswer = null;
+      botPlayers.forEach(b => { b.hasAnswered = false; b.currentAnswer = null; });
+
+      const q = currentQuestions[index];
+
+      // Header Tracker
+      document.getElementById('question-tracker').textContent = `Question ${index + 1} / ${currentQuestions.length}`;
+      document.getElementById('question-title').textContent = q.q;
+
+      // Reset Visuals
+      document.getElementById('question-media').classList.add('hidden');
+      document.getElementById('mcq-options').classList.add('hidden');
+      document.getElementById('map-container').classList.add('hidden');
+      document.getElementById('mcq-options').innerHTML = "";
+
+      // Render Question Type
+      if (q.type === "map") {
+        renderMapQuestion(q);
+      } else {
+        if (q.type === "flag") {
+          document.getElementById('question-media').classList.remove('hidden');
+          document.getElementById('flag-img').src = q.flag;
+        }
+        renderMCQQuestion(q);
+      }
+
+      updatePlayersStatusUI();
+      startTimer(20);
+
+      // Bots (hôte / solo uniquement) + diffusion de la question aux joueurs en ligne
+      if (net.role !== 'guest') simulateBotAnswers(q);
+      if (net.role === 'host') broadcast({ t: 'question', index, total: currentQuestions.length, q, players: snapshot(false) });
+    }
+
+    function renderMCQQuestion(q) {
+      const container = document.getElementById('mcq-options');
+      container.classList.remove('hidden');
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = `option-btn glass-card p-5 rounded-2xl font-bold text-lg text-left flex justify-between items-center transition duration-200 border border-slate-700/80 hover:border-amber-400 hover:bg-slate-800/80`;
+        btn.innerHTML = `
+          <span>${opt}</span>
+          <i class="fa-regular fa-circle text-slate-500 check-icon"></i>
+        `;
+        btn.onclick = () => selectMCQOption(idx, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectMCQOption(idx, buttonEl) {
+      if (localPlayer.hasAnswered) return;
+
+      localPlayer.hasAnswered = true;
+      localPlayer.currentAnswer = idx;
+      reportAnswer(idx);
+
+      // Apply PERSISTENT Golden Selection Effect
+      document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('option-selected'));
+      buttonEl.classList.add('option-selected');
+
+      const icon = buttonEl.querySelector('.check-icon');
+      if (icon) {
+        icon.className = "fa-solid fa-circle-check text-amber-400 text-xl";
+      }
+
+      updatePlayersStatusUI();
+      checkAllAnswered();
+    }
+
+    /* =========================================================================
+       MULTIJOUEUR EN LIGNE (PeerJS, l'hôte fait autorité)
+       ========================================================================= */
+    const net = { role: 'solo', peer: null, conn: null, code: '', humans: [], inGame: false };
+    const $ = id => document.getElementById(id);
+    const setRoomStatus = t => { $('room-status').textContent = t; };
+    const broadcast = msg => net.humans.forEach(h => { try { if (h.conn.open) h.conn.send(msg); } catch (e) {} });
+    const reportAnswer = a => { if (net.role === 'guest' && net.conn && net.conn.open) net.conn.send({ t: 'answer', answer: a }); };
+
+    function snapshot(withAnswers) {
+      return [localPlayer, ...botPlayers].map(p => {
+        const a = p.currentAnswer;
+        return {
+          id: p.id, name: p.name, avatar: p.avatar, score: p.score, isBot: !!p.isBot, hasAnswered: !!p.hasAnswered,
+          currentAnswer: !withAnswers || a === null || a === undefined ? null : (typeof a === 'object' ? { lat: a.lat, lng: a.lng } : a)
+        };
+      });
+    }
+    function applySnapshot(list) {
+      const me = list.find(p => p.id === localPlayer.id);
+      if (me) localPlayer.score = me.score;
+      botPlayers = list.filter(p => p.id !== localPlayer.id).map(p => ({ ...p }));
+      $('player-score').textContent = `${localPlayer.score} pts`;
+    }
+    function renderRoomPlayers(list) {
+      $('room-players').innerHTML = list.map(p => `<span class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-sm">${p.avatar} ${p.name}</span>`).join('');
+    }
+    function renderRoom() {
+      const list = [localPlayer, ...net.humans];
+      renderRoomPlayers(list);
+      setRoomStatus(`Salon ouvert : ${list.length} joueur(s) humain(s). Lance la partie quand tout le monde est là !`);
+      broadcast({ t: 'lobby', players: list.map(p => ({ name: p.name, avatar: p.avatar })) });
+    }
+    function showFinal() {
+      const sorted = [localPlayer, ...botPlayers].sort((a, b) => b.score - a.score);
+      alert('🏆 Partie terminée !\n\n' + sorted.map((p, i) => `${i + 1}. ${p.avatar} ${p.name} : ${p.score} pts`).join('\n'));
+      returnToLobby();
+    }
+    function returnToLobby() {
+      clearInterval(timerInterval);
+      botTimeouts.forEach(clearTimeout);
+      roundActive = false;
+      net.inGame = false;
+      ['view-game', 'view-recap'].forEach(id => $(id).classList.add('hidden'));
+      $('view-lobby').classList.remove('hidden');
+      if (net.role === 'host') renderRoom();
+    }
+    function leaveRoom(silent) {
+      const wasInGame = net.inGame;
+      const { conn, peer } = net;
+      Object.assign(net, { role: 'solo', peer: null, conn: null, code: '', humans: [], inGame: false });
+      try { if (conn) conn.close(); } catch (e) {}
+      try { if (peer) peer.destroy(); } catch (e) {}
+      $('room-code-box').classList.add('hidden');
+      $('btn-leave-room').classList.add('hidden');
+      $('btn-start').classList.remove('hidden');
+      renderRoomPlayers([]);
+      if (wasInGame) returnToLobby();
+      if (!silent) setRoomStatus('Hors ligne : tu joues avec des bots.');
+    }
+    function genCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      return Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+
+    function createRoom() {
+      if (typeof Peer === 'undefined') return setRoomStatus('PeerJS non chargé : vérifie ta connexion internet.');
+      leaveRoom(true);
+      const code = genCode();
+      const peer = new Peer('quizparty-' + code);
+      Object.assign(net, { role: 'host', peer, code });
+      peer.on('open', () => {
+        $('room-code').textContent = code;
+        $('room-code-box').classList.remove('hidden');
+        $('btn-leave-room').classList.remove('hidden');
+        renderRoom();
+      });
+      peer.on('connection', conn => {
+        conn.on('data', d => hostOnData(conn, d));
+        conn.on('close', () => {
+          if (net.role !== 'host') return;
+          net.humans = net.humans.filter(h => h.conn !== conn);
+          botPlayers = botPlayers.filter(b => b.conn !== conn);
+          renderRoom();
+          if (net.inGame && roundActive) { updatePlayersStatusUI(); checkAllAnswered(); }
+        });
+      });
+      peer.on('error', e => {
+        if (e.type === 'unavailable-id') createRoom();
+        else setRoomStatus('Erreur réseau : ' + e.type);
+      });
+    }
+    function hostOnData(conn, d) {
+      if (d.t === 'join') {
+        if (net.inGame) { conn.send({ t: 'busy' }); setTimeout(() => conn.close(), 300); return; }
+        net.humans.push({ id: d.id, name: String(d.name || 'Joueur').slice(0, 20), avatar: d.avatar || '🎮', score: 0, isBot: false, hasAnswered: false, currentAnswer: null, conn });
+        renderRoom();
+      } else if (d.t === 'answer') {
+        const h = net.humans.find(x => x.conn === conn);
+        if (!h || !roundActive || h.hasAnswered) return;
+        h.hasAnswered = true;
+        h.currentAnswer = d.answer;
+        updatePlayersStatusUI();
+        checkAllAnswered();
+      }
+    }
+
+    function joinRoom() {
+      const code = $('input-room-code').value.trim().toUpperCase();
+      if (!code) return setRoomStatus('Entre un code de salon.');
+      if (typeof Peer === 'undefined') return setRoomStatus('PeerJS non chargé : vérifie ta connexion internet.');
+      leaveRoom(true);
+      setRoomStatus('Connexion au salon ' + code + '...');
+      const peer = new Peer();
+      Object.assign(net, { role: 'guest', peer, code });
+      peer.on('open', () => {
+        const conn = peer.connect('quizparty-' + code, { reliable: true });
+        net.conn = conn;
+        const timeout = setTimeout(() => { if (!conn.open) { setRoomStatus('Impossible de rejoindre le salon ' + code + '.'); leaveRoom(true); } }, 10000);
+        conn.on('open', () => {
+          clearTimeout(timeout);
+          conn.send({ t: 'join', id: localPlayer.id, name: localPlayer.name, avatar: localPlayer.avatar });
+          $('btn-start').classList.add('hidden');
+          $('btn-leave-room').classList.remove('hidden');
+          setRoomStatus('Connecté au salon ' + code + ' : en attente du lancement par l\'hôte...');
+        });
+        conn.on('data', guestOnData);
+        conn.on('close', () => { if (net.conn !== conn) return; leaveRoom(true); setRoomStatus('Connexion perdue avec l\'hôte.'); });
+      });
+      peer.on('error', e => {
+        leaveRoom(true);
+        setRoomStatus(e.type === 'peer-unavailable' ? 'Code introuvable : vérifie-le.' : 'Erreur réseau : ' + e.type);
+      });
+    }
+    function guestOnData(d) {
+      if (d.t === 'lobby') renderRoomPlayers(d.players);
+      else if (d.t === 'busy') { leaveRoom(true); setRoomStatus('La partie a déjà commencé.'); }
+      else if (d.t === 'question') {
+        net.inGame = true;
+        if (currentQuestions.length !== d.total) currentQuestions = new Array(d.total).fill(null);
+        currentQuestions[d.index] = d.q;
+        currentQIndex = d.index;
+        applySnapshot(d.players);
+        ['view-lobby', 'view-recap'].forEach(id => $(id).classList.add('hidden'));
+        $('view-game').classList.remove('hidden');
+        $('player-badge').classList.remove('hidden');
+        loadQuestion(d.index);
+      } else if (d.t === 'status') {
+        d.players.forEach(sp => { const b = botPlayers.find(x => x.id === sp.id); if (b) b.hasAnswered = sp.hasAnswered; });
+        updatePlayersStatusUI();
+      } else if (d.t === 'recap') {
+        clearInterval(timerInterval);
+        applySnapshot(d.players);
+        showRecapView(currentQuestions[currentQIndex]);
+      } else if (d.t === 'end') {
+        applySnapshot(d.players);
+        showFinal();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      $('btn-create-room').onclick = createRoom;
+      $('btn-join-room').onclick = joinRoom;
+      $('btn-leave-room').onclick = () => leaveRoom(false);
+      $('input-room-code').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase(); });
+    });
+
+    /* Fonds de carte sans clé d'API et sans étiquettes, avec bascule automatique si un serveur échoue */
+    function addTiles(map) {
+      const TILE_PROVIDERS = [
+        { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+          opts: { maxZoom: 16, attribution: 'Tiles &copy; Esri' } },
+        { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          opts: { maxZoom: 17, attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics' } },
+        { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          opts: { maxZoom: 18, attribution: '&copy; OpenStreetMap contributors' } }
+      ];
+      let providerIdx = 0, tileErrors = 0, layer = null;
+      const useProvider = (i) => {
+        if (layer) map.removeLayer(layer);
+        tileErrors = 0;
+        layer = L.tileLayer(TILE_PROVIDERS[i].url, TILE_PROVIDERS[i].opts).addTo(map);
+        layer.on('tileerror', () => {
+          if (++tileErrors >= 4 && providerIdx < TILE_PROVIDERS.length - 1) {
+            providerIdx++;
+            useProvider(providerIdx);
+          }
+        });
+      };
+      useProvider(0);
+    }
+
+    /* Carte du récap : emplacement exact + position du joueur */
+    let recapMap = null;
+    let recapLayers = [];
+    function renderRecapMap(q) {
+      const guess = localPlayer.hasAnswered && localPlayer.currentAnswer ? localPlayer.currentAnswer : null;
+      const info = document.getElementById('recap-map-info');
+      if (guess) {
+        const km = calculateDistance(guess.lat, guess.lng, q.lat, q.lng);
+        info.textContent = `🎯 ${q.name} — vous étiez à ${km.toLocaleString('fr-FR')} km`;
+      } else {
+        info.textContent = `🎯 ${q.name} — vous n'avez pas placé de repère`;
+      }
+
+      setTimeout(() => {
+        if (!recapMap) {
+          recapMap = L.map('recap-map').setView([20, 0], 2);
+          addTiles(recapMap);
+        }
+        recapLayers.forEach(l => recapMap.removeLayer(l));
+        recapLayers = [];
+        recapMap.invalidateSize();
+
+        const pin = (emoji) => L.divIcon({
+          className: 'custom-pin',
+          html: `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">${emoji}</div>`,
+          iconSize: [30, 30],
+          iconAnchor: [15, 30]
+        });
+        const label = (m, text) => m.bindTooltip(text, { permanent: true, direction: 'top', offset: [0, -30] });
+
+        const points = [[q.lat, q.lng]];
+        recapLayers.push(label(L.marker([q.lat, q.lng], { icon: pin('🎯') }).addTo(recapMap), q.name));
+
+        if (guess) {
+          points.push([guess.lat, guess.lng]);
+          recapLayers.push(L.polyline([[guess.lat, guess.lng], [q.lat, q.lng]], { color: '#f59e0b', weight: 3, dashArray: '6 8' }).addTo(recapMap));
+          recapLayers.push(label(L.marker([guess.lat, guess.lng], { icon: pin('📍') }).addTo(recapMap), 'Vous'));
+        }
+        // Positions des adversaires (bots) qui ont répondu
+        botPlayers.forEach(bot => {
+          const a = bot.currentAnswer;
+          if (!bot.hasAnswered || !a || a.lat === undefined) return;
+          const km = calculateDistance(a.lat, a.lng, q.lat, q.lng);
+          const icon = L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="font-size:20px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.85);border:2px solid #94a3b8;border-radius:9999px;box-shadow:0 2px 6px rgba(0,0,0,0.5);">${bot.avatar}</div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 17]
+          });
+          points.push([a.lat, a.lng]);
+          recapLayers.push(L.polyline([[a.lat, a.lng], [q.lat, q.lng]], { color: '#94a3b8', weight: 2, dashArray: '2 8' }).addTo(recapMap));
+          recapLayers.push(L.marker([a.lat, a.lng], { icon }).addTo(recapMap).bindTooltip(`${bot.name} — ${km.toLocaleString('fr-FR')} km`, { direction: 'top', offset: [0, -14] }));
+        });
+
+        recapMap.fitBounds(points, { padding: [60, 60], maxZoom: 10 });
+      }, 100);
+    }
+
+    function renderMapQuestion(q) {
+      const mapContainer = document.getElementById('map-container');
+      mapContainer.classList.remove('hidden');
+
+      selectedCoords = null;
+      document.getElementById('map-pin-status').textContent = "Aucun repère placé";
+      document.getElementById('btn-submit-map').disabled = true;
+      document.getElementById('btn-submit-map').classList.add('opacity-50', 'cursor-not-allowed');
+
+      // Initialize Leaflet Map safely without API KEY
+      setTimeout(() => {
+        if (!leafletMap) {
+          leafletMap = L.map('leaflet-map').setView([20, 0], 2);
+          
+          // OpenStreetMap Tile Server (NO API KEY REQUIRED)
+          addTiles(leafletMap);
+
+          leafletMap.on('click', (e) => {
+            if (localPlayer.hasAnswered) return;
+
+            selectedCoords = e.latlng;
+            if (currentPinMarker) {
+              leafletMap.removeLayer(currentPinMarker);
+            }
+
+            // Custom Leaflet Pin Icon
+            const pinIcon = L.divIcon({
+              className: 'custom-pin',
+              html: `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">📍</div>`,
+              iconSize: [30, 30],
+              iconAnchor: [15, 30]
+            });
+
+            currentPinMarker = L.marker([e.latlng.lat, e.latlng.lng], { icon: pinIcon }).addTo(leafletMap);
+
+            document.getElementById('map-pin-status').textContent = `Repère placé (${e.latlng.lat.toFixed(2)}°, ${e.latlng.lng.toFixed(2)}°)`;
+            const submitBtn = document.getElementById('btn-submit-map');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          });
+        } else {
+          leafletMap.setView([20, 0], 2);
+          if (currentPinMarker) {
+            leafletMap.removeLayer(currentPinMarker);
+            currentPinMarker = null;
+          }
+        }
+        leafletMap.invalidateSize();
+      }, 200);
+    }
+
+    function submitMapAnswer() {
+      if (!selectedCoords || localPlayer.hasAnswered) return;
+
+      localPlayer.hasAnswered = true;
+      localPlayer.currentAnswer = selectedCoords;
+      reportAnswer({ lat: selectedCoords.lat, lng: selectedCoords.lng });
+
+      document.getElementById('btn-submit-map').disabled = true;
+      document.getElementById('btn-submit-map').classList.add('opacity-50', 'cursor-not-allowed');
+      document.getElementById('map-pin-status').textContent = " Position validée !";
+
+      updatePlayersStatusUI();
+      checkAllAnswered();
+    }
+
+    function simulateBotAnswers(question) {
+      botPlayers.filter(b => b.isBot).forEach(bot => {
+        // Random delay for realistic bot responses
+        const delay = Math.floor(Math.random() * 8000) + 2000;
+        botTimeouts.push(setTimeout(() => {
+          if (!roundActive || bot.hasAnswered) return;
+
+          bot.hasAnswered = true;
+          if (question.type === "map") {
+            // Simulated offset for map
+            const latErr = (Math.random() - 0.5) * 15;
+            const lngErr = (Math.random() - 0.5) * 15;
+            bot.currentAnswer = { lat: question.lat + latErr, lng: question.lng + lngErr };
+          } else {
+            // MCQ correct rate ~70%
+            const isCorrect = Math.random() < 0.7;
+            if (isCorrect) {
+              bot.currentAnswer = question.answer;
+            } else {
+              bot.currentAnswer = Math.floor(Math.random() * question.options.length);
+            }
+          }
+
+          updatePlayersStatusUI();
+          checkAllAnswered();
+        }, delay));
+      });
+    }
+
+    function startTimer(seconds) {
+      clearInterval(timerInterval);
+      timeLeft = seconds;
+      const bar = document.getElementById('timer-bar');
+      const text = document.getElementById('timer-text');
+
+      bar.style.width = '100%';
+      text.textContent = `⏱️ ${timeLeft}s`;
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        text.textContent = `⏱️ ${timeLeft}s`;
+        bar.style.width = `${(timeLeft / seconds) * 100}%`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          if (net.role !== 'guest') finishRound();
+        }
+      }, 1000);
+    }
+
+    function updatePlayersStatusUI() {
+      const container = document.getElementById('players-status-list');
+      container.innerHTML = "";
+
+      const all = [localPlayer, ...botPlayers];
+      all.forEach(p => {
+        const badge = document.createElement('div');
+        badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${
+          p.hasAnswered 
+            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
+            : 'bg-slate-800 border-slate-700 text-slate-500'
+        }`;
+        badge.innerHTML = `<span>${p.avatar}</span> <span>${p.hasAnswered ? '✓' : '...'}</span>`;
+        container.appendChild(badge);
+      });
+      if (net.role === 'host' && net.inGame) broadcast({ t: 'status', players: snapshot(false) });
+    }
+
+    function checkAllAnswered() {
+      if (net.role === 'guest') return;
+      const all = [localPlayer, ...botPlayers];
+      const allDone = all.every(p => p.hasAnswered);
+      
+      // Instant transition as soon as everyone has responded
+      if (allDone) {
+        clearInterval(timerInterval);
+        setTimeout(finishRound, 500);
+      }
+    }
+
+    /* =========================================================================
+       5. SCORING ENGINE & ROUND RECAP
+       ========================================================================= */
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return Math.round(R * c);
+    }
+
+    function finishRound() {
+      if (!roundActive) return;
+      roundActive = false;
+      clearInterval(timerInterval);
+      botTimeouts.forEach(clearTimeout);
+      botTimeouts = [];
+      const q = currentQuestions[currentQIndex];
+
+      // Calculate Scores for this round
+      const all = [localPlayer, ...botPlayers];
+
+      all.forEach(p => {
+        let earned = 0;
+        if (p.hasAnswered && p.currentAnswer !== null) {
+          if (q.type === "map") {
+            const dist = calculateDistance(p.currentAnswer.lat, p.currentAnswer.lng, q.lat, q.lng);
+            // Points formula based on distance error
+            earned = Math.max(0, Math.round(1000 - dist * 0.5));
+          } else {
+            if (p.currentAnswer === q.answer) {
+              earned = 1000 + (timeLeft * 20); // Speed bonus
+            }
+          }
+        }
+        p.score += earned;
+      });
+
+      // Update Player Score Badge
+      document.getElementById('player-score').textContent = `${localPlayer.score} pts`;
+
+      showRecapView(q);
+    }
+
+    function showRecapView(q) {
+      document.getElementById('view-game').classList.add('hidden');
+      document.getElementById('view-recap').classList.remove('hidden');
+
+      // Explanation Text
+      const good = q.type === "map" ? `📍 ${q.name}. ` : `✅ Bonne réponse : ${q.options[q.answer]}. `;
+      document.getElementById('recap-explanation').textContent = good + q.explanation;
+      const recapWrap = document.getElementById('recap-map-wrap');
+      if (q.type === "map") {
+        recapWrap.classList.remove('hidden');
+        renderRecapMap(q);
+      } else {
+        recapWrap.classList.add('hidden');
+      }
+      document.getElementById('btn-next-question').innerHTML = currentQIndex + 1 >= currentQuestions.length
+        ? 'Résultat final <i class="fa-solid fa-flag-checkered ml-2"></i>'
+        : 'Question Suivante <i class="fa-solid fa-arrow-right ml-2"></i>';
+      const nextBtn = document.getElementById('btn-next-question');
+      nextBtn.disabled = net.role === 'guest';
+      nextBtn.classList.toggle('opacity-50', net.role === 'guest');
+      if (net.role === 'guest') nextBtn.textContent = "En attente de l'hôte...";
+      if (net.role === 'host') broadcast({ t: 'recap', players: snapshot(true) });
+
+      // Render Leaderboard
+      const leaderboard = document.getElementById('leaderboard-list');
+      leaderboard.innerHTML = "";
+
+      const sorted = [localPlayer, ...botPlayers].sort((a, b) => b.score - a.score);
+
+      sorted.forEach((p, rank) => {
+        const item = document.createElement('div');
+        const isLocal = p.id === localPlayer.id;
+
+        item.className = `p-4 rounded-2xl flex items-center justify-between border ${
+          isLocal 
+            ? 'bg-amber-500/20 border-amber-500/50 shadow-md' 
+            : 'bg-slate-900/60 border-slate-800'
+        }`;
+
+        item.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="font-black text-lg ${rank === 0 ? 'text-amber-400' : 'text-slate-500'}">#${rank + 1}</span>
+            <span class="text-2xl">${p.avatar}</span>
+            <div>
+              <div class="font-bold text-sm text-slate-200">${p.name} ${isLocal ? '(Vous)' : ''}</div>
+              <div class="text-xs text-slate-400">${p.hasAnswered ? 'A répondu' : 'Temps écoulé'}</div>
+            </div>
+          </div>
+          <div class="font-heading font-black text-lg text-amber-400">${p.score} pts</div>
+        `;
+
+        leaderboard.appendChild(item);
+      });
+    }
+
+    function advanceToNextQuestion() {
+      if (net.role === 'guest') return;
+      currentQIndex++;
+      if (currentQIndex < currentQuestions.length) {
+        document.getElementById('view-recap').classList.add('hidden');
+        document.getElementById('view-game').classList.remove('hidden');
+        loadQuestion(currentQIndex);
+      } else {
+        // Game Over - Return to Lobby
+        if (net.role === 'host') broadcast({ t: 'end', players: snapshot(true) });
+        showFinal();
+      }
+    }
+
+    /* =========================================================================
+       6. MULTI-TAB SYNC ENGINE (BroadcastChannel)
+       ========================================================================= */
+    function initMultiTabSync() {
+      channel.onmessage = (event) => {
+        // Simple ping/pong synchronization for multi-tab testing
+        if (event.data.type === 'PLAYER_JOIN') {
+          console.log('Nouveau joueur local connecté sur un autre onglet !');
+        }
+      };
+      channel.postMessage({ type: 'PLAYER_JOIN', player: localPlayer });
+    }
+  </script>
+</body>
+</html>
