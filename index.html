@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz Party - Jeu Multijoueur</title>
+  <title>// tEST qUIZZ - Jeu * Game Multijoueur</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
+  <script>if (!window.mqtt) { var sc = document.createElement('script'); sc.src = 'https://unpkg.com/mqtt/dist/mqtt.min.js'; document.head.appendChild(sc); }</script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap');
@@ -54,6 +55,8 @@
     .animate-pulse-glow {
       animation: pulseGlow 2s infinite ease-in-out;
     }
+      .podium-step { transform-origin: bottom; animation: podium-rise 0.8s ease-out both; }
+    @keyframes podium-rise { from { transform: scaleY(0); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
   </style>
 </head>
 <body class="h-full flex flex-col justify-between overflow-x-hidden bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
@@ -65,7 +68,7 @@
       </div>
       <div>
         <h1 class="font-heading text-xl font-bold bg-gradient-to-r from-amber-400 via-orange-300 to-purple-300 bg-clip-text text-transparent">
-          QUIZ PARTY
+          BE Continued...
         </h1>
         <p class="text-xs text-slate-400" id="session-info">Salon Solo / Local</p>
       </div>
@@ -90,7 +93,7 @@
     <section id="view-lobby" class="space-y-6">
       <div class="text-center space-y-2">
         <h2 class="font-heading text-4xl md:text-5xl font-black text-white tracking-wide">
-          DÉFIE TES AMIS & BOTS !
+          BIENVENUE !
         </h2>
         <p class="text-slate-400 max-w-xl mx-auto">
           Sélectionne un mode de jeu, choisis ta catégorie et teste tes connaissances générales, géographiques et historiques.
@@ -109,14 +112,8 @@
           </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">Avatar</label>
-            <div class="flex gap-2 text-2xl overflow-x-auto pb-2" id="avatar-picker">
-              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-amber-500">🎮</button>
-              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">🚀</button>
-              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">🦊</button>
-              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">🧠</button>
-              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">👑</button>
-              <button class="avatar-opt p-2 rounded-xl bg-slate-800 border border-transparent hover:border-slate-600">⚡</button>
-            </div>
+            <div class="flex gap-2 text-2xl overflow-x-auto pb-2 items-center" id="avatar-picker"></div>
+            <input type="file" id="avatar-upload" accept="image/*" class="hidden">
           </div>
         </div>
 
@@ -153,14 +150,10 @@
 
       <!-- Multijoueur en ligne -->
       <div class="glass-card p-6 rounded-2xl space-y-4">
-        <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2">
-          <i class="fa-solid fa-globe"></i> Multijoueur en ligne
-        </h3>
+        <h3 class="text-lg font-bold text-amber-400 flex items-center gap-2"><i class="fa-solid fa-globe"></i> Multijoueur en ligne</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="space-y-2">
-            <button id="btn-create-room" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold hover:opacity-90 transition">
-              <i class="fa-solid fa-plus mr-1"></i> Créer un salon
-            </button>
+            <button id="btn-create-room" class="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold hover:opacity-90 transition"><i class="fa-solid fa-plus mr-1"></i> Créer un salon</button>
             <div id="room-code-box" class="hidden text-center">
               <div class="text-xs text-slate-400">Code du salon (à donner à tes amis)</div>
               <div id="room-code" class="font-heading text-4xl font-black tracking-widest text-amber-400">-----</div>
@@ -284,7 +277,7 @@
   </main>
 
   <footer class="p-4 text-center text-xs text-slate-500 border-t border-slate-800/50">
-    Quiz Party &copy; 2026 - Jeu de Quiz Multijoueur & Bots - Cartographie sans clé d'API
+    Beta Name &copy; 2026 - Secret - Cartographie sans clé d'API- Tous droits réservés
   </footer>
 
   <script>
@@ -949,7 +942,7 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
     
     let localPlayer = {
       id: "player_" + Math.random().toString(36).substr(2, 6),
-      name: "Champion",
+      name: "BETA test all",
       avatar: "🎮",
       score: 0,
       hasAnswered: false,
@@ -1012,14 +1005,7 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
 
     function setupEventListeners() {
       // Avatar Picker
-      document.querySelectorAll('.avatar-opt').forEach(btn => {
-        btn.onclick = (e) => {
-          document.querySelectorAll('.avatar-opt').forEach(b => b.classList.replace('border-amber-500', 'border-transparent'));
-          e.currentTarget.classList.replace('border-transparent', 'border-amber-500');
-          localPlayer.avatar = e.currentTarget.textContent.trim();
-          document.getElementById('player-avatar').textContent = localPlayer.avatar;
-        };
-      });
+      renderAvatarPicker();
 
       // Name Input
       document.getElementById('input-pseudo').addEventListener('input', (e) => {
@@ -1048,7 +1034,7 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
 
       // Create Bot Players
       const botNames = ["Robotix", "CyberSavant", "BrainBot", "NeoQuiz", "PixelMaster"];
-      const botAvatars = ["🤖", "👾", "💻", "⚡", "🛸"];
+      const botAvatars = BOT_AVATARS;
       localPlayer.score = 0;
       document.getElementById('player-score').textContent = '0 pts';
       botPlayers = net.role === 'host' ? net.humans.map(h => Object.assign(h, { score: 0, hasAnswered: false, currentAnswer: null })) : [];
@@ -1174,20 +1160,80 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
       checkAllAnswered();
     }
 
+    /* ---------- Avatars (emoji ou images) ---------- */
+    // Pour utiliser tes propres images : mets-les dans un dossier "avatars" à côté de index.html
+    // puis écris leur chemin ici, par exemple "avatars/renard.png". Tu peux mélanger emojis et images.
+    const PLAYER_AVATARS = ["🎮", "🚀", "🦊", "🧠", "👑", "⚡", "👽", "⛩️", "🌸"];
+    const BOT_AVATARS = ["🤖", "👾", "💻", "⚡", "🛸"];
+
+    function isImg(a) {
+      return typeof a === 'string' && (a.startsWith('data:image/') || /^https?:\/\//.test(a) || /\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(a));
+    }
+    function av(a, px) {
+      if (!isImg(a)) return a;
+      return `<img src="${String(a).replace(/"/g, '&quot;')}" alt="" style="width:${px}px;height:${px}px;border-radius:9999px;object-fit:cover;display:inline-block;vertical-align:middle;">`;
+    }
+    function avText(a) { return isImg(a) ? '' : a; }
+
+    function selectAvatar(a) {
+      localPlayer.avatar = a;
+      document.getElementById('player-avatar').innerHTML = av(a, 24);
+      renderAvatarPicker();
+    }
+    function renderAvatarPicker() {
+      const box = document.getElementById('avatar-picker');
+      box.innerHTML = '';
+      const list = [...PLAYER_AVATARS];
+      if (isImg(localPlayer.avatar) && !list.includes(localPlayer.avatar)) list.push(localPlayer.avatar);
+      list.forEach(a => {
+        const b = document.createElement('button');
+        b.className = 'avatar-opt shrink-0 p-2 rounded-xl bg-slate-800 border ' + (a === localPlayer.avatar ? 'border-amber-500' : 'border-transparent hover:border-slate-600');
+        b.innerHTML = av(a, 32);
+        b.onclick = () => selectAvatar(a);
+        box.appendChild(b);
+      });
+      const up = document.createElement('button');
+      up.className = 'shrink-0 p-2 rounded-xl bg-slate-800 border border-dashed border-slate-600 text-sm text-slate-300';
+      up.textContent = '📷 Ma photo';
+      up.onclick = () => document.getElementById('avatar-upload').click();
+      box.appendChild(up);
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('avatar-upload').onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = c.height = 64;
+          const side = Math.min(img.width, img.height);
+          c.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, 64, 64);
+          URL.revokeObjectURL(url);
+          selectAvatar(c.toDataURL('image/jpeg', 0.75));
+        };
+        img.src = url;
+        e.target.value = '';
+      };
+    });
+
     /* =========================================================================
        MULTIJOUEUR EN LIGNE (PeerJS, l'hôte fait autorité)
        ========================================================================= */
     const net = { role: 'solo', peer: null, conn: null, code: '', humans: [], inGame: false };
     const $ = id => document.getElementById(id);
     const setRoomStatus = t => { $('room-status').textContent = t; };
-    const broadcast = msg => net.humans.forEach(h => { try { if (h.conn.open) h.conn.send(msg); } catch (e) {} });
-    const reportAnswer = a => { if (net.role === 'guest' && net.conn && net.conn.open) net.conn.send({ t: 'answer', answer: a }); };
+    const roomTopic = code => 'quizparty-v2/' + code;
+    const sid = id => String(id).replace(/[^\w-]/g, '');
+    const pub = (topic, msg) => { try { if (net.client && net.client.connected) net.client.publish(topic, JSON.stringify(msg)); } catch (e) {} };
+    const broadcast = msg => { if (net.role === 'host' && net.humans.length) pub(roomTopic(net.code) + '/h', msg); };
+    const reportAnswer = a => { if (net.role === 'guest' && net.joined) pub(roomTopic(net.code) + '/g/' + sid(localPlayer.id), { t: 'answer', answer: a }); };
 
-    function snapshot(withAnswers) {
+    function snapshot(withAnswers, includeAvatar) {
       return [localPlayer, ...botPlayers].map(p => {
         const a = p.currentAnswer;
         return {
-          id: p.id, name: p.name, avatar: p.avatar, score: p.score, isBot: !!p.isBot, hasAnswered: !!p.hasAnswered,
+          id: p.id, name: p.name, avatar: includeAvatar === false ? '' : p.avatar, score: p.score, isBot: !!p.isBot, hasAnswered: !!p.hasAnswered,
           currentAnswer: !withAnswers || a === null || a === undefined ? null : (typeof a === 'object' ? { lat: a.lat, lng: a.lng } : a)
         };
       });
@@ -1199,7 +1245,7 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
       $('player-score').textContent = `${localPlayer.score} pts`;
     }
     function renderRoomPlayers(list) {
-      $('room-players').innerHTML = list.map(p => `<span class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-sm">${p.avatar} ${p.name}</span>`).join('');
+      $('room-players').innerHTML = list.map(p => `<span class="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-sm">${av(p.avatar, 20)} ${p.name}</span>`).join('');
     }
     function renderRoom() {
       const list = [localPlayer, ...net.humans];
@@ -1209,24 +1255,96 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
     }
     function showFinal() {
       const sorted = [localPlayer, ...botPlayers].sort((a, b) => b.score - a.score);
-      alert('🏆 Partie terminée !\n\n' + sorted.map((p, i) => `${i + 1}. ${p.avatar} ${p.name} : ${p.score} pts`).join('\n'));
-      returnToLobby();
+      const colors = ['from-amber-300 to-amber-600', 'from-slate-200 to-slate-500', 'from-orange-400 to-orange-700'];
+      const medals = ['🥇', '🥈', '🥉'];
+      const heights = [176, 128, 96];
+      const delays = [1.8, 1.0, 0.2];
+      const column = (p, r) => `
+        <div class="flex flex-col items-center w-28 sm:w-36">
+          ${r === 0 ? '<div class="text-3xl animate-bounce">👑</div>' : '<div class="h-9"></div>'}
+          <div style="font-size:48px;line-height:1.2;">${av(p.avatar, 64)}</div>
+          <div class="font-bold text-sm max-w-full truncate ${p === localPlayer ? 'text-amber-300' : ''}">${p.name}${p === localPlayer ? ' (vous)' : ''}</div>
+          <div class="text-amber-300 font-black">${p.score} pts</div>
+          <div class="podium-step w-full mt-2 rounded-t-xl bg-gradient-to-b ${colors[r]} flex items-start justify-center pt-2 text-3xl text-slate-900" style="height:${heights[r]}px;animation-delay:${delays[r]}s">${medals[r]}</div>
+        </div>`;
+      const order = sorted.length >= 3 ? [1, 0, 2] : sorted.length === 2 ? [1, 0] : [0];
+      const podium = order.map(r => column(sorted[r], r)).join('');
+      const rest = sorted.slice(3).map((p, i) => `
+        <div class="flex items-center gap-3 px-4 py-2 rounded-xl bg-slate-800/70 border border-slate-700 ${p === localPlayer ? 'border-amber-500' : ''}">
+          <span class="font-black text-slate-400 w-6">${i + 4}</span>
+          <span class="text-xl">${av(p.avatar, 28)}</span>
+          <span class="flex-1 text-left font-semibold truncate">${p.name}</span>
+          <span class="font-bold text-amber-300">${p.score} pts</span>
+        </div>`).join('');
+      const rank = sorted.indexOf(localPlayer) + 1;
+      $('podium-content').innerHTML = `
+        <h2 class="font-heading text-3xl font-black text-amber-400 mb-1">🏆 Fin de la partie !</h2>
+        <p class="text-slate-300 mb-8">${rank === 1 ? 'Bravo, tu gagnes !' : `Tu termines ${rank}e sur ${sorted.length}.`}</p>
+        <div class="flex items-end justify-center gap-2 sm:gap-4 mb-8">${podium}</div>
+        <div class="space-y-2 mb-8">${rest}</div>
+        <button id="btn-podium-close" class="px-8 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black hover:opacity-90 transition">Retour au lobby</button>`;
+      $('btn-podium-close').onclick = returnToLobby;
+      ['view-game', 'view-recap', 'view-lobby'].forEach(id => $(id).classList.add('hidden'));
+      $('view-podium').classList.remove('hidden');
     }
     function returnToLobby() {
       clearInterval(timerInterval);
       botTimeouts.forEach(clearTimeout);
       roundActive = false;
       net.inGame = false;
-      ['view-game', 'view-recap'].forEach(id => $(id).classList.add('hidden'));
+      ['view-game', 'view-recap', 'view-podium'].forEach(id => $(id).classList.add('hidden'));
       $('view-lobby').classList.remove('hidden');
       if (net.role === 'host') renderRoom();
     }
+    // Code organisateur : seul celui qui le connaît peut créer un salon. Change-le ici !
+    const HOST_CODE = 'MONQUIZ';
+    const BROKERS = [
+      { c: 'P', name: 'Eclipse', url: 'wss://mqtt.eclipseprojects.io:443/mqtt' },
+      { c: 'E', name: 'EMQX', url: 'wss://broker.emqx.io:8084/mqtt' },
+      { c: 'H', name: 'HiveMQ', url: 'wss://broker.hivemq.com:8884/mqtt' },
+      { c: 'M', name: 'Mosquitto', url: 'wss://test.mosquitto.org:8081' }
+    ];
+    function genCode(n) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      return Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+    function connectBroker(broker, will) {
+      return new Promise((resolve, reject) => {
+        const client = mqtt.connect(broker.url, { connectTimeout: 6000, reconnectPeriod: 0, clean: true, clientId: 'qp_' + genCode(8), will });
+        let done = false;
+        const fail = () => { if (done) return; done = true; client.removeAllListeners(); client.on('error', () => {}); try { client.end(true); } catch (e) {} reject(new Error('broker')); };
+        client.once('connect', () => { if (done) return; done = true; client.removeListener('error', fail); client.removeListener('close', fail); resolve(client); });
+        client.once('error', fail);
+        client.once('close', fail);
+        setTimeout(fail, 8000);
+      });
+    }
+    function connectAny(make) {
+      return new Promise((resolve, reject) => {
+        let pending = BROKERS.length, won = false;
+        const failed = [];
+        BROKERS.forEach(b => {
+          const { code, will } = make(b);
+          connectBroker(b, will)
+            .then(client => { if (won) { client.end(true); return; } won = true; resolve({ client, code }); })
+            .catch(() => { failed.push(b.name); if (--pending === 0 && !won) reject(failed); });
+        });
+      });
+    }
+    const parse = payload => { try { return JSON.parse(payload.toString()); } catch (e) { return null; } };
+
     function leaveRoom(silent) {
+      const { client, role, code } = net;
       const wasInGame = net.inGame;
-      const { conn, peer } = net;
-      Object.assign(net, { role: 'solo', peer: null, conn: null, code: '', humans: [], inGame: false });
-      try { if (conn) conn.close(); } catch (e) {}
-      try { if (peer) peer.destroy(); } catch (e) {}
+      clearTimeout(net.joinTimer);
+      Object.assign(net, { role: 'solo', client: null, code: '', humans: [], inGame: false, token: null, joined: false });
+      if (client) {
+        try {
+          if (role === 'guest') client.publish(roomTopic(code) + '/g/' + sid(localPlayer.id), JSON.stringify({ t: 'leave' }));
+          else if (role === 'host') client.publish(roomTopic(code) + '/h', JSON.stringify({ t: 'hostleft' }));
+        } catch (e) {}
+        setTimeout(() => { try { client.end(true); } catch (e) {} }, 300);
+      }
       $('room-code-box').classList.add('hidden');
       $('btn-leave-room').classList.add('hidden');
       $('btn-start').classList.remove('hidden');
@@ -1234,45 +1352,54 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
       if (wasInGame) returnToLobby();
       if (!silent) setRoomStatus('Hors ligne : tu joues avec des bots.');
     }
-    function genCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      return Array.from({ length: 5 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    }
 
-    function createRoom() {
-      if (typeof Peer === 'undefined') return setRoomStatus('PeerJS non chargé : vérifie ta connexion internet.');
+    async function createRoom() {
+      if (typeof mqtt === 'undefined') return setRoomStatus('Bibliothèque réseau non chargée : vérifie ta connexion internet.');
+      if (net.role === 'host') return; // salon déjà en cours de création ou ouvert
+      const entered = prompt("Code organisateur (seul l'organisateur peut créer une partie) :");
+      if (entered === null) return;
+      if (entered.trim() !== HOST_CODE) return setRoomStatus('Code organisateur incorrect.');
       leaveRoom(true);
-      const code = genCode();
-      const peer = new Peer('quizparty-' + code);
-      Object.assign(net, { role: 'host', peer, code });
-      peer.on('open', () => {
-        $('room-code').textContent = code;
-        $('room-code-box').classList.remove('hidden');
-        $('btn-leave-room').classList.remove('hidden');
-        renderRoom();
-      });
-      peer.on('connection', conn => {
-        conn.on('data', d => hostOnData(conn, d));
-        conn.on('close', () => {
-          if (net.role !== 'host') return;
-          net.humans = net.humans.filter(h => h.conn !== conn);
-          botPlayers = botPlayers.filter(b => b.conn !== conn);
-          renderRoom();
-          if (net.inGame && roundActive) { updatePlayersStatusUI(); checkAllAnswered(); }
-        });
-      });
-      peer.on('error', e => {
-        if (e.type === 'unavailable-id') createRoom();
-        else setRoomStatus('Erreur réseau : ' + e.type);
-      });
+      net.role = 'host';
+      const token = net.token = Math.random();
+      setRoomStatus('Création du salon...');
+      const suffix = genCode(4);
+      let r;
+      try {
+        r = await connectAny(b => ({ code: b.c + suffix, will: { topic: roomTopic(b.c + suffix) + '/h', payload: JSON.stringify({ t: 'hostleft' }), qos: 0 } }));
+      } catch (names) {
+        if (net.token === token) { leaveRoom(true); setRoomStatus('Aucun serveur de connexion joignable (testés : ' + names.join(', ') + '). Essaie un autre réseau ou un autre navigateur.'); }
+        return;
+      }
+      const { client, code } = r;
+      if (net.token !== token) { client.end(true); return; }
+      net.client = client;
+      net.code = code;
+      client.on('message', (topic, payload) => { const d = parse(payload); if (d) hostOnData(topic.split('/').pop(), d); });
+      client.on('close', () => { if (net.client === client) { leaveRoom(true); setRoomStatus('Connexion au serveur perdue : salon fermé.'); } });
+      client.subscribe(roomTopic(code) + '/g/+');
+      $('room-code').textContent = code;
+      $('room-code-box').classList.remove('hidden');
+      $('btn-leave-room').classList.remove('hidden');
+      renderRoom();
     }
-    function hostOnData(conn, d) {
+    function removeHuman(gid) {
+      net.humans = net.humans.filter(h => sid(h.id) !== gid);
+      botPlayers = botPlayers.filter(b => b.isBot || sid(b.id) !== gid);
+      renderRoom();
+      if (net.inGame && roundActive) { updatePlayersStatusUI(); checkAllAnswered(); }
+    }
+    function hostOnData(gid, d) {
       if (d.t === 'join') {
-        if (net.inGame) { conn.send({ t: 'busy' }); setTimeout(() => conn.close(), 300); return; }
-        net.humans.push({ id: d.id, name: String(d.name || 'Joueur').slice(0, 20), avatar: d.avatar || '🎮', score: 0, isBot: false, hasAnswered: false, currentAnswer: null, conn });
+        if (net.inGame) { broadcast({ t: 'busy', to: d.id }); return; }
+        if (!net.humans.some(h => sid(h.id) === gid)) {
+          net.humans.push({ id: d.id, name: String(d.name || 'Joueur').slice(0, 20), avatar: (d.avatar && String(d.avatar).length < 30000) ? d.avatar : '🎮', score: 0, isBot: false, hasAnswered: false, currentAnswer: null });
+        }
         renderRoom();
+      } else if (d.t === 'leave') {
+        removeHuman(gid);
       } else if (d.t === 'answer') {
-        const h = net.humans.find(x => x.conn === conn);
+        const h = net.humans.find(x => sid(x.id) === gid);
         if (!h || !roundActive || h.hasAnswered) return;
         h.hasAnswered = true;
         h.currentAnswer = d.answer;
@@ -1281,36 +1408,52 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
       }
     }
 
-    function joinRoom() {
+    async function joinRoom() {
       const code = $('input-room-code').value.trim().toUpperCase();
-      if (!code) return setRoomStatus('Entre un code de salon.');
-      if (typeof Peer === 'undefined') return setRoomStatus('PeerJS non chargé : vérifie ta connexion internet.');
+      if (code.length !== 5) return setRoomStatus('Le code du salon fait 5 caractères.');
+      const broker = BROKERS.find(b => b.c === code[0]);
+      if (!broker) return setRoomStatus('Code invalide : vérifie-le.');
+      if (typeof mqtt === 'undefined') return setRoomStatus('Bibliothèque réseau non chargée : vérifie ta connexion internet.');
       leaveRoom(true);
+      Object.assign(net, { role: 'guest', code, joined: false });
+      const token = net.token = Math.random();
       setRoomStatus('Connexion au salon ' + code + '...');
-      const peer = new Peer();
-      Object.assign(net, { role: 'guest', peer, code });
-      peer.on('open', () => {
-        const conn = peer.connect('quizparty-' + code, { reliable: true });
-        net.conn = conn;
-        const timeout = setTimeout(() => { if (!conn.open) { setRoomStatus('Impossible de rejoindre le salon ' + code + '.'); leaveRoom(true); } }, 10000);
-        conn.on('open', () => {
-          clearTimeout(timeout);
-          conn.send({ t: 'join', id: localPlayer.id, name: localPlayer.name, avatar: localPlayer.avatar });
-          $('btn-start').classList.add('hidden');
-          $('btn-leave-room').classList.remove('hidden');
-          setRoomStatus('Connecté au salon ' + code + ' : en attente du lancement par l\'hôte...');
+      const topicMe = roomTopic(code) + '/g/' + sid(localPlayer.id);
+      try {
+        const client = await connectBroker(broker, { topic: topicMe, payload: JSON.stringify({ t: 'leave' }), qos: 0 });
+        if (net.token !== token) { client.end(true); return; }
+        net.client = client;
+        client.on('message', (topic, payload) => { const d = parse(payload); if (d) guestOnData(d); });
+        client.on('close', () => { if (net.client === client) { leaveRoom(true); setRoomStatus('Connexion au serveur perdue.'); } });
+        client.subscribe(roomTopic(code) + '/h', () => {
+          pub(topicMe, { t: 'join', id: localPlayer.id, name: localPlayer.name, avatar: localPlayer.avatar });
         });
-        conn.on('data', guestOnData);
-        conn.on('close', () => { if (net.conn !== conn) return; leaveRoom(true); setRoomStatus('Connexion perdue avec l\'hôte.'); });
-      });
-      peer.on('error', e => {
-        leaveRoom(true);
-        setRoomStatus(e.type === 'peer-unavailable' ? 'Code introuvable : vérifie-le.' : 'Erreur réseau : ' + e.type);
-      });
+        net.joinTimer = setTimeout(() => {
+          if (net.client === client && !net.joined) { leaveRoom(true); setRoomStatus("Code introuvable : le salon n'existe pas ou est fermé."); }
+        }, 8000);
+      } catch (e) {
+        if (net.token === token) { leaveRoom(true); setRoomStatus('Impossible de joindre le serveur ' + broker.name + ' : essaie un autre réseau, ou demande à l\'hôte de recréer un salon.'); }
+      }
     }
+    function onJoined() {
+      if (net.joined) return;
+      net.joined = true;
+      clearTimeout(net.joinTimer);
+      $('btn-start').classList.add('hidden');
+      $('btn-leave-room').classList.remove('hidden');
+      setRoomStatus('Connecté au salon ' + net.code + " : en attente du lancement par l'hôte...");
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      $('btn-create-room').onclick = createRoom;
+      $('btn-join-room').onclick = joinRoom;
+      $('btn-leave-room').onclick = () => leaveRoom(false);
+      $('input-room-code').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase(); });
+    });
+
     function guestOnData(d) {
-      if (d.t === 'lobby') renderRoomPlayers(d.players);
-      else if (d.t === 'busy') { leaveRoom(true); setRoomStatus('La partie a déjà commencé.'); }
+      if (d.t === 'lobby') { onJoined(); renderRoomPlayers(d.players); }
+      else if (d.t === 'busy') { if (d.to === localPlayer.id) { leaveRoom(true); setRoomStatus('La partie a déjà commencé.'); } }
+      else if (d.t === 'hostleft') { leaveRoom(true); setRoomStatus("L'hôte a quitté le salon."); }
       else if (d.t === 'question') {
         net.inGame = true;
         if (currentQuestions.length !== d.total) currentQuestions = new Array(d.total).fill(null);
@@ -1333,13 +1476,6 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
         showFinal();
       }
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      $('btn-create-room').onclick = createRoom;
-      $('btn-join-room').onclick = joinRoom;
-      $('btn-leave-room').onclick = () => leaveRoom(false);
-      $('input-room-code').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase(); });
-    });
 
     /* Fonds de carte sans clé d'API et sans étiquettes, avec bascule automatique si un serveur échoue */
     function addTiles(map) {
@@ -1411,7 +1547,7 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
           const km = calculateDistance(a.lat, a.lng, q.lat, q.lng);
           const icon = L.divIcon({
             className: 'custom-pin',
-            html: `<div style="font-size:20px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.85);border:2px solid #94a3b8;border-radius:9999px;box-shadow:0 2px 6px rgba(0,0,0,0.5);">${bot.avatar}</div>`,
+            html: `<div style="font-size:20px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.85);border:2px solid #94a3b8;border-radius:9999px;box-shadow:0 2px 6px rgba(0,0,0,0.5);">${av(bot.avatar, 28)}</div>`,
             iconSize: [34, 34],
             iconAnchor: [17, 17]
           });
@@ -1552,10 +1688,10 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
             ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' 
             : 'bg-slate-800 border-slate-700 text-slate-500'
         }`;
-        badge.innerHTML = `<span>${p.avatar}</span> <span>${p.hasAnswered ? '✓' : '...'}</span>`;
+        badge.innerHTML = `<span>${av(p.avatar, 18)}</span> <span>${p.hasAnswered ? '✓' : '...'}</span>`;
         container.appendChild(badge);
       });
-      if (net.role === 'host' && net.inGame) broadcast({ t: 'status', players: snapshot(false) });
+      if (net.role === 'host' && net.inGame) broadcast({ t: 'status', players: snapshot(false, false) });
     }
 
     function checkAllAnswered() {
@@ -1659,7 +1795,7 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
         item.innerHTML = `
           <div class="flex items-center gap-3">
             <span class="font-black text-lg ${rank === 0 ? 'text-amber-400' : 'text-slate-500'}">#${rank + 1}</span>
-            <span class="text-2xl">${p.avatar}</span>
+            <span class="text-2xl">${av(p.avatar, 32)}</span>
             <div>
               <div class="font-bold text-sm text-slate-200">${p.name} ${isLocal ? '(Vous)' : ''}</div>
               <div class="text-xs text-slate-400">${p.hasAnswered ? 'A répondu' : 'Temps écoulé'}</div>
@@ -1699,5 +1835,9 @@ Quel club a remporté le plus de Ligues des champions masculines ?|Le Real Madri
       channel.postMessage({ type: 'PLAYER_JOIN', player: localPlayer });
     }
   </script>
+  <!-- Podium de fin de partie -->
+  <div id="view-podium" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur">
+    <div id="podium-content" class="max-w-2xl mx-auto px-4 py-10 text-center"></div>
+  </div>
 </body>
 </html>
