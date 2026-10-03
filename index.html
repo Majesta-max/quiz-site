@@ -192,6 +192,15 @@
               </select>
             </div>
             <div>
+              <label class="block text-xs text-slate-400 mb-1">Difficulté</label>
+              <select id="select-diff" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold">
+                <option value="0" selected>Toutes les difficultés</option>
+                <option value="1">🟢 Facile</option>
+                <option value="2">🟡 Moyen</option>
+                <option value="3">🔴 Difficile</option>
+              </select>
+            </div>
+            <div>
               <label class="block text-xs text-slate-400 mb-1">Mode de jeu</label>
               <select id="select-mode" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold">
                 <option value="solo" selected>Chacun pour soi</option>
@@ -446,7 +455,8 @@
       { id: "science", name: "Sciences", icon: "fa-atom", color: "from-cyan-500 to-blue-600" },
       { id: "sports", name: "Sports & Esports", icon: "fa-trophy", color: "from-orange-500 to-amber-600" },
       { id: "manga", name: "Mangas & Animés", icon: "fa-book-open-reader", color: "from-rose-500 to-orange-500" },
-      { id: "math", name: "Mathématiques", icon: "fa-calculator", color: "from-indigo-500 to-blue-700" }
+      { id: "math", name: "Mathématiques", icon: "fa-calculator", color: "from-indigo-500 to-blue-700" },
+      { id: "cuisine", name: "Cuisine", icon: "fa-utensils", color: "from-orange-400 to-red-500" }
     ];
 
     /* =========================================================================
@@ -1368,6 +1378,146 @@
       "Que vaut i au carré, avec i l'unité imaginaire ?|-1|1|i|0|C'est la définition de i."
     ]);
 
+    /* ---- BANQUE 4 : encore plus de questions faciles (d=1) et difficiles (d=3) ---- */
+    const D = (cat, d, txt) => addQD(cat, d, txt.trim().split('\n'));
+    D('general', 1, `
+Quelle est la capitale de la France ?|Paris|Lyon|Marseille|Bordeaux|Paris est la capitale depuis des siècles.
+Combien de jours compte une semaine ?|7|5|6|8|Du lundi au dimanche.
+De quelle couleur est le ciel par temps clair ?|Bleu|Vert|Rouge|Jaune|L'atmosphère diffuse surtout la lumière bleue.
+Combien font 2 + 2 ?|4|3|5|6|Une addition toute simple.
+`);
+    D('general', 3, `
+Quel est le plus petit pays d'Afrique par sa superficie ?|Les Seychelles|Maurice|La Gambie|Le Cap-Vert|Les Seychelles couvrent environ 460 km².
+Quelle est la capitale du Kazakhstan ?|Astana|Almaty|Tachkent|Bichkek|Astana est la capitale depuis 1997.
+Quel est le point le plus profond des océans ?|La fosse des Mariannes|La fosse de Porto Rico|La fosse de Java|La fosse des Tonga|Elle atteint environ 11 000 m.
+Quel est l'élément le plus abondant de la croûte terrestre ?|L'oxygène|Le silicium|Le fer|L'aluminium|L'oxygène représente environ 46 % de sa masse.
+`);
+    D('cinema', 1, `
+Quel film Disney met en scène une princesse aux cheveux très longs ?|Raiponce|Cendrillon|Blanche-Neige|Mulan|Elle s'appelle Raiponce.
+Quel animal est Simba dans 'Le Roi Lion' ?|Un lion|Un tigre|Un guépard|Un loup|Simba est un lionceau.
+Quel super-héros porte un costume de chauve-souris ?|Batman|Superman|Spider-Man|Iron Man|Batman est le justicier de Gotham City.
+Quel film met en scène un jeune sorcier à lunettes ?|Harry Potter|Narnia|Percy Jackson|Eragon|Le premier film date de 2001.
+`);
+    D('cinema', 3, `
+Qui a réalisé 'Stalker' (1979) ?|Andreï Tarkovski|Sergueï Eisenstein|Nikita Mikhalkov|Andreï Zviaguintsev|C'est un film de science-fiction soviétique.
+Quel film a remporté le tout premier Oscar du meilleur film ?|Les Ailes|Sunrise|Le Cirque|Cavalcade|La première cérémonie a eu lieu en 1929.
+Qui a réalisé 'Mulholland Drive' ?|David Lynch|Lars von Trier|David Cronenberg|Paul Thomas Anderson|Le film date de 2001.
+Quel acteur tient le rôle principal de 'Taxi Driver' ?|Robert De Niro|Al Pacino|Harvey Keitel|Dustin Hoffman|Martin Scorsese l'a réalisé en 1976.
+`);
+    D('gaming', 1, `
+Quel plombier moustachu est la mascotte de Nintendo ?|Mario|Luigi|Wario|Sonic|Il saute sur des Goombas.
+Quel jeu consiste à empiler des blocs qui tombent ?|Tetris|Pac-Man|Pong|Snake|Les blocs s'appellent des tétrominos.
+De quel type est Pikachu ?|Électrique|Feu|Eau|Plante|Pikachu est un Pokémon électrique.
+Quel jeu de blocs a pour monstre célèbre le creeper ?|Minecraft|Roblox|Terraria|Fortnite|Le creeper est un monstre vert qui explose.
+`);
+    D('gaming', 3, `
+En quelle année est sorti Pong, l'un des premiers jeux d'arcade ?|1972|1968|1975|1980|Atari l'a lancé en 1972.
+Quel studio a créé 'Half-Life' ?|Valve|id Software|Bungie|Epic Games|Le jeu est sorti en 1998.
+Qui a composé la musique de 'Super Mario Bros.' ?|Koji Kondo|Nobuo Uematsu|Yasunori Mitsuda|Motoi Sakuraba|Koji Kondo a aussi composé pour Zelda.
+Quel jeu d'arcade de 1978 oppose le joueur à des extraterrestres en rangs ?|Space Invaders|Galaga|Asteroids|Defender|Taito l'a publié en 1978.
+`);
+    D('art', 1, `
+Quel peintre a réalisé la Joconde ?|Léonard de Vinci|Picasso|Van Gogh|Monet|Elle est exposée au Louvre.
+Quelle auteure a écrit 'Harry Potter' ?|J. K. Rowling|Agatha Christie|Jane Austen|Suzanne Collins|Le premier tome date de 1997.
+Dans quel musée est exposée la Joconde ?|Le Louvre|Le Prado|Le musée d'Orsay|Le British Museum|Le Louvre est à Paris.
+Quelle couleur obtient-on en mélangeant bleu et jaune ?|Vert|Orange|Violet|Marron|Ce sont deux couleurs primaires.
+`);
+    D('art', 3, `
+Qui a peint 'Les Ménines' ?|Diego Vélasquez|Francisco Goya|El Greco|Murillo|Le tableau date de 1656.
+Qui a écrit 'À la recherche du temps perdu' ?|Marcel Proust|Louis-Ferdinand Céline|André Gide|Albert Camus|L'œuvre compte sept tomes.
+Quel mouvement doit son nom à 'Impression, soleil levant' ?|L'impressionnisme|Le fauvisme|Le cubisme|Le romantisme|Le tableau est de Claude Monet.
+Qui a écrit 'Ulysse' en 1922 ?|James Joyce|Virginia Woolf|Samuel Beckett|T. S. Eliot|Le roman se déroule à Dublin.
+`);
+    D('history', 1, `
+Quelle cité romaine a été ensevelie par le Vésuve ?|Pompéi|Rome|Carthage|Athènes|L'éruption a eu lieu en 79.
+Quel roi de France a été guillotiné en 1793 ?|Louis XVI|Louis XIV|Charles X|Henri IV|Il est exécuté pendant la Révolution.
+En quelle année l'homme a-t-il marché sur la Lune ?|1969|1959|1979|1989|Neil Armstrong est le premier à y poser le pied.
+Quel océan Christophe Colomb a-t-il traversé en 1492 ?|L'Atlantique|Le Pacifique|L'océan Indien|L'Arctique|Il est parti d'Espagne.
+`);
+    D('history', 3, `
+Quels traités ont mis fin à la guerre de Trente Ans en 1648 ?|Les traités de Westphalie|Le traité d'Utrecht|Le traité de Vienne|Le traité de Tordesillas|Ils ont redessiné la carte de l'Europe.
+En quelle année a eu lieu la bataille de Marignan ?|1515|1415|1610|1789|François Ier y a remporté une victoire.
+Qui est le premier empereur de la Chine unifiée en 221 av. J.-C. ?|Qin Shi Huang|Han Wudi|Kublai Khan|Sun Yat-sen|Il a fait bâtir une partie de la Grande Muraille.
+Quelle bataille de 1415 a opposé Français et Anglais ?|Azincourt|Crécy|Poitiers|Bouvines|Henri V d'Angleterre l'a remportée.
+`);
+    D('geography', 1, `
+Quelle est la capitale de l'Italie ?|Rome|Milan|Venise|Naples|Rome est surnommée la Ville éternelle.
+Quel est le plus grand océan du monde ?|Le Pacifique|L'Atlantique|L'océan Indien|L'Arctique|Il couvre près d'un tiers de la planète.
+Sur quel continent se trouve l'Égypte ?|L'Afrique|L'Asie|L'Europe|L'Amérique|Le Nil la traverse.
+Quel pays a la forme d'une botte ?|L'Italie|L'Espagne|La Grèce|Le Portugal|C'est sa silhouette sur la carte.
+`);
+    D('geography', 3, `
+Quelle est la capitale de la Mongolie ?|Oulan-Bator|Astana|Bichkek|Tachkent|Oulan-Bator est la plus grande ville du pays.
+Quel est le plus petit État du monde par sa superficie ?|Le Vatican|Monaco|Nauru|Saint-Marin|Il couvre environ 0,44 km².
+Quel lac est le plus profond du monde ?|Le lac Baïkal|Le lac Tanganyika|La mer Caspienne|Le lac Supérieur|Il dépasse 1 600 m de profondeur.
+Quelle est la capitale de la Birmanie depuis 2006 ?|Naypyidaw|Rangoun|Mandalay|Bago|Elle a remplacé Rangoun.
+`);
+    D('music', 1, `
+Combien de notes compte la gamme de do majeur ?|7|5|8|12|Do, ré, mi, fa, sol, la, si.
+Quel instrument a des touches blanches et noires ?|Le piano|La flûte|Le violon|La batterie|Un piano standard compte 88 touches.
+Quel groupe est composé de John, Paul, George et Ringo ?|The Beatles|Queen|The Rolling Stones|ABBA|Ils viennent de Liverpool.
+Quel chanteur est surnommé le Roi de la pop ?|Michael Jackson|Elvis Presley|Prince|Justin Timberlake|Il a sorti l'album 'Thriller'.
+`);
+    D('music', 3, `
+Quel compositeur a écrit l'opéra 'La Traviata' ?|Giuseppe Verdi|Giacomo Puccini|Gioachino Rossini|Richard Wagner|Il date de 1853.
+Qui a composé 'Le Sacre du printemps' ?|Igor Stravinsky|Maurice Ravel|Sergueï Prokofiev|Claude Debussy|La première a fait scandale en 1913.
+Quel jazzman a enregistré 'Kind of Blue' ?|Miles Davis|John Coltrane|Duke Ellington|Charlie Parker|L'album date de 1959.
+Quel groupe a sorti l'album 'OK Computer' ?|Radiohead|Blur|Oasis|Muse|L'album date de 1997.
+`);
+    D('science', 1, `
+Quel gaz respire-t-on pour vivre ?|L'oxygène|Le gaz carbonique|L'hélium|L'azote|On l'inspire à chaque respiration.
+Que boit une plante pour grandir ?|De l'eau|Du lait|Du jus|De l'huile|Ses racines la puisent dans le sol.
+Quelle étoile éclaire la Terre le jour ?|Le Soleil|La Lune|Sirius|Mars|Il est au centre du système solaire.
+Quel animal pond des œufs ?|La poule|La vache|Le chat|Le chien|La poule est un oiseau.
+`);
+    D('science', 3, `
+Quelle particule transporte la force électromagnétique ?|Le photon|Le gluon|Le boson W|Le graviton|Le photon n'a pas de masse.
+Quel est le numéro atomique du carbone ?|6|8|12|14|Le carbone possède 6 protons.
+Qui a décrit la structure en double hélice de l'ADN avec Francis Crick ?|James Watson|Linus Pauling|Gregor Mendel|Louis Pasteur|Ils l'ont décrite en 1953.
+Quelle est la vitesse de la lumière dans le vide, environ ?|300 000 km/s|150 000 km/s|3 000 km/s|1 000 000 km/s|C'est la vitesse maximale connue.
+`);
+    D('sports', 1, `
+Dans quel sport marque-t-on des paniers ?|Le basket-ball|Le football|Le rugby|Le tennis|On tire vers un panier à 3,05 m.
+Quel sport se joue avec une raquette et une balle jaune ?|Le tennis|Le golf|Le basket|Le football|Roland-Garros en est un tournoi.
+Quelle médaille récompense la première place aux Jeux olympiques ?|L'or|L'argent|Le bronze|Le platine|L'argent est pour la deuxième place.
+Combien de tournois du Grand Chelem compte le tennis chaque année ?|4|3|5|6|Australie, Roland-Garros, Wimbledon et US Open.
+`);
+    D('sports', 3, `
+Quel pays a remporté la première Coupe du monde de football en 1930 ?|L'Uruguay|L'Argentine|Le Brésil|L'Italie|Elle s'est jouée en Uruguay.
+Quel pays a le plus de Coupes du monde de rugby masculines à fin 2023 ?|L'Afrique du Sud|La Nouvelle-Zélande|L'Australie|L'Angleterre|Elle en compte 4.
+Qui détient le record du monde du 100 m, en 9 s 58 ?|Usain Bolt|Tyson Gay|Yohan Blake|Justin Gatlin|Il l'a établi en 2009 à Berlin.
+Quel pilote détient le record de victoires en Grand Prix de F1 ?|Lewis Hamilton|Michael Schumacher|Sebastian Vettel|Ayrton Senna|Il dépasse les 100 victoires.
+`);
+
+    /* ---- CATÉGORIE CUISINE : 20 questions (7 faciles, 8 moyennes, 5 difficiles) ---- */
+    QUESTION_BANK.cuisine = [];
+    D('cuisine', 1, `
+Quel ingrédient principal compose le guacamole ?|L'avocat|La tomate|Le concombre|Le poivron|On l'écrase avec du citron et de la coriandre.
+Quelle spécialité italienne mêle pâte, sauce tomate et mozzarella ?|La pizza|La lasagne|Le risotto|La focaccia|La pizza margherita est la plus célèbre.
+Quels ingrédients composent la pâte d'une baguette traditionnelle ?|Farine, eau, sel et levure|Farine, œufs et beurre|Farine, lait et sucre|Fécule et huile|Elle ne contient ni sucre ni matière grasse.
+Quel fruit sert à faire le cidre ?|La pomme|La poire|Le raisin|La cerise|Le cidre est une spécialité normande et bretonne.
+Comment appelle-t-on la fine galette de pâte que l'on fête à la Chandeleur ?|La crêpe|La gaufre|Le beignet|Le blini|On dit qu'il faut la faire sauter avec une pièce en main.
+Quel légume est la base de la soupe gratinée ?|L'oignon|Le poireau|La carotte|Le chou|Elle est souvent gratinée au fromage.
+Quel fromage est utilisé dans une pizza margherita ?|La mozzarella|Le camembert|Le roquefort|Le gruyère|Elle fond bien et reste filante.
+`);
+    D('cuisine', 2, `
+De quel pays vient le sushi ?|Le Japon|La Chine|La Corée|La Thaïlande|Il associe riz vinaigré et poisson ou légumes.
+Quel est l'ingrédient principal du houmous ?|Les pois chiches|Les lentilles|Les haricots blancs|Les fèves|On y ajoute tahini, citron et ail.
+Comment appelle-t-on la cuisson dans un liquide frémissant sans bouillir ?|Pocher|Griller|Sauter|Rôtir|Elle convient aux œufs ou au poisson.
+Quelle épice donne sa couleur jaune au curry ?|Le curcuma|Le paprika|Le safran|Le cumin|Le curcuma colore aussi le riz.
+Quel plat espagnol à base de riz est garni de fruits de mer ou de viande ?|La paella|Le gaspacho|La tortilla|Les churros|Elle vient de la région de Valence.
+Quels légumes composent une ratatouille ?|Aubergine, courgette et tomate|Pomme de terre et lard|Haricots et saucisses|Riz et poulet|Elle vient de Nice et de Provence.
+Quel plat associe des frites à un mollusque cuit en marmite ?|Moules-frites|Waterzooi|Carbonade|Stoemp|C'est un classique de Belgique et du nord de la France.
+À partir de quoi fabrique-t-on le chocolat ?|Des fèves de cacao|Des grains de café|Des noix de cajou|Des gousses de vanille|Elles sont torréfiées puis broyées.
+`);
+    D('cuisine', 3, `
+Quelle épice est la plus chère au monde au poids ?|Le safran|La vanille|La cardamome|Le poivre noir|Elle provient des stigmates du crocus.
+De quelle région d'Italie vient le Parmigiano Reggiano ?|L'Émilie-Romagne|La Toscane|La Sicile|La Campanie|Il est produit autour de Parme et de Reggio d'Émilie.
+Quel fromage français est un bleu affiné dans les caves de Roquefort-sur-Soulzon ?|Le roquefort|Le bleu d'Auvergne|La fourme d'Ambert|Le gorgonzola|Il est fabriqué avec du lait de brebis.
+Avec quel lait fabrique-t-on traditionnellement la feta ?|Brebis (avec un peu de chèvre)|Vache|Bufflonne|Chamelle|Elle est protégée par une AOP.
+Que désigne l'umami ?|Une cinquième saveur, le goût savoureux|Un sucre japonais|Une technique de cuisson|Une sauce soja|Il a été identifié au Japon en 1908.
+`);
+
     /* ---- Nettoyage final : doublons retirés, puis tri par type (QCM → cartes → drapeaux), puis par difficulté (facile → difficile) ---- */
     (() => {
       const seen = new Set();
@@ -1562,11 +1712,15 @@
         pool = [...(QUESTION_BANK[selectedCategory] || QUESTION_BANK.general)];
       }
 
+      // Filtre de difficulté (1 facile, 2 moyen, 3 difficile ; sans niveau = moyen)
+      const lvl = parseInt((document.getElementById('select-diff') || { value: '0' }).value) || 0;
+      if (lvl) pool = pool.filter(x => (x.d || 2) === lvl);
+
       // Shuffle Pool
       const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
       if (selectedCategory !== "mixed") shuffle(pool);
       if (pool.length < questionLimit) {
-        const extra = shuffle(Object.values(QUESTION_BANK).flat().filter(x => !pool.includes(x)));
+        const extra = shuffle(Object.values(QUESTION_BANK).flat().filter(x => !pool.includes(x) && (!lvl || (x.d || 2) === lvl)));
         pool = pool.concat(extra);
       }
       currentQuestions = pool.slice(0, questionLimit).map(q => {
