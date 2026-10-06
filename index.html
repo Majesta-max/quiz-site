@@ -1518,6 +1518,34 @@ Avec quel lait fabrique-t-on traditionnellement la feta ?|Brebis (avec un peu de
 Que désigne l'umami ?|Une cinquième saveur, le goût savoureux|Un sucre japonais|Une technique de cuisson|Une sauce soja|Il a été identifié au Japon en 1908.
 `);
 
+    /* ---- CUISINE : 20 questions de plus ---- */
+    D('cuisine', 1, `
+Quel fruit jaune et allongé se glisse dans un banana split ?|La banane|Le citron|L'ananas|La mangue|On la sert avec des boules de glace.
+Quel est l'ingrédient principal du pain ?|La farine|Le sucre|Le riz|La semoule|Elle est mélangée à de l'eau et de la levure.
+Avec quel lait fabrique-t-on le camembert ?|Le lait de vache|Le lait de chèvre|Le lait de brebis|Le lait de bufflonne|Il est originaire de Normandie.
+Quelle pâte italienne a la forme de longs fils ?|Les spaghettis|Les gnocchis|Les raviolis|Les tortellinis|On les sert souvent avec une sauce bolognaise.
+Quel produit sucré les abeilles fabriquent-elles ?|Le miel|Le sucre|La confiture|Le sirop|Il est récolté dans les ruches.
+Quel légume orange est râpé dans les crudités ?|La carotte|La courgette|Le radis|Le navet|Elle est riche en bêta-carotène.
+Quel gâteau mange-t-on pour l'Épiphanie en janvier ?|La galette des Rois|La bûche|Le pain d'épices|Le clafoutis|Elle cache une fève.
+`);
+    D('cuisine', 2, `
+De quel pays vient le kimchi ?|La Corée|Le Japon|La Chine|Le Vietnam|C'est du chou fermenté et épicé.
+Quel est l'ingrédient principal du tzatziki ?|Le yaourt|La crème|Le fromage blanc|Le lait|On y ajoute du concombre et de l'ail.
+Quel plat mexicain est une galette de maïs garnie ?|Le taco|La paella|Le couscous|Le kebab|Il se garnit de viande, de légumes et de sauces.
+Quelle graine est la base du couscous ?|La semoule de blé|Le riz|Le maïs|L'orge|Elle est cuite à la vapeur.
+Comment s'appelle la pâtisserie légère faite de blancs d'œufs et de sucre ?|La meringue|Le macaron|La madeleine|Le financier|Elle est cuite très doucement au four.
+Quel plat suisse consiste à tremper du pain dans du fromage fondu ?|La fondue|La raclette|Le rösti|La tartiflette|On la sert dans un caquelon.
+Quel fruit sèche pour devenir un pruneau ?|La prune|Le raisin|L'abricot|La figue|Le pruneau d'Agen est célèbre.
+Quelle sauce accompagne souvent les nems ?|La sauce nuoc-mâm sucrée-salée|La sauce hollandaise|La mayonnaise|Le ketchup|On y trempe le nem avec de la salade et de la menthe.
+`);
+    D('cuisine', 3, `
+Que signifie la 'mise en place' en cuisine ?|Préparer les ingrédients avant de cuisiner|Dresser l'assiette|Nettoyer la cuisine|Goûter le plat|C'est un terme de la brigade de cuisine.
+Quel ingrédient caractérise la sauce Mornay ?|Le fromage|La tomate|Le vin rouge|Le citron|C'est une béchamel enrichie de fromage.
+Quelle région française est la patrie du cassoulet ?|L'Occitanie|La Bretagne|L'Alsace|La Normandie|Il se prépare avec des haricots blancs et du confit.
+Quel piment est utilisé pour la sauce Tabasco ?|Le piment tabasco|Le piment d'Espelette|Le jalapeño|Le habanero|Cette sauce vient de Louisiane.
+Quel pays européen a influencé la tempura japonaise ?|Le Portugal|L'Italie|La France|Les Pays-Bas|Des missionnaires portugais ont introduit la friture au XVIe siècle.
+`);
+
     /* ---- Nettoyage final : doublons retirés, puis tri par type (QCM → cartes → drapeaux), puis par difficulté (facile → difficile) ---- */
     (() => {
       const seen = new Set();
