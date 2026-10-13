@@ -456,7 +456,9 @@
       { id: "sports", name: "Sports & Esports", icon: "fa-trophy", color: "from-orange-500 to-amber-600" },
       { id: "manga", name: "Mangas & Animés", icon: "fa-book-open-reader", color: "from-rose-500 to-orange-500" },
       { id: "math", name: "Mathématiques", icon: "fa-calculator", color: "from-indigo-500 to-blue-700" },
-      { id: "cuisine", name: "Cuisine", icon: "fa-utensils", color: "from-orange-400 to-red-500" }
+      { id: "cuisine", name: "Cuisine", icon: "fa-utensils", color: "from-orange-400 to-red-500" },
+      { id: "tanks", name: "Chars d'assaut", icon: "fa-shield-halved", color: "from-lime-600 to-green-800" },
+      { id: "halloween", name: "Halloween", icon: "fa-ghost", color: "from-orange-500 to-purple-800" }
     ];
 
     /* =========================================================================
@@ -1544,6 +1546,279 @@ Quel ingrédient caractérise la sauce Mornay ?|Le fromage|La tomate|Le vin roug
 Quelle région française est la patrie du cassoulet ?|L'Occitanie|La Bretagne|L'Alsace|La Normandie|Il se prépare avec des haricots blancs et du confit.
 Quel piment est utilisé pour la sauce Tabasco ?|Le piment tabasco|Le piment d'Espelette|Le jalapeño|Le habanero|Cette sauce vient de Louisiane.
 Quel pays européen a influencé la tempura japonaise ?|Le Portugal|L'Italie|La France|Les Pays-Bas|Des missionnaires portugais ont introduit la friture au XVIe siècle.
+`);
+
+    /* ---- CATÉGORIE CHARS D'ASSAUT : 20 questions (6 faciles, 8 moyennes, 6 difficiles) ---- */
+    QUESTION_BANK.tanks = [];
+    D('tanks', 1, `
+Quel char soviétique célèbre de la Seconde Guerre mondiale a été produit à plus de 80 000 exemplaires ?|Le T-34|Le M4 Sherman|Le Panther|Le Churchill|Il est considéré comme l'un des meilleurs chars de son époque.
+Quel pays a construit le char Panzer IV ?|L'Allemagne|La France|Le Royaume-Uni|Les États-Unis|Il a été utilisé pendant toute la Seconde Guerre mondiale.
+Quel char américain de la Seconde Guerre mondiale est surnommé 'Sherman' ?|Le M4|Le M1|Le M60|Le M48|Il porte le nom du général William Tecumseh Sherman.
+Comment appelle-t-on un char d'assaut en anglais ?|Un tank|Un truck|Un trailer|Un tractor|Le mot 'tank' servait à cacher la nature de l'engin pendant la Première Guerre mondiale.
+Quel pays a utilisé des chars au combat pour la première fois en 1916 ?|Le Royaume-Uni|L'Allemagne|La France|Les États-Unis|Ils sont apparus sur le front de la Somme.
+Quel élément permet à un char de rouler sur terrain difficile ?|Les chenilles|Les pneus|Les hélices|Les patins|Elles répartissent le poids sur le sol.
+`);
+    D('tanks', 2, `
+Quel char français de 1917 est considéré comme le premier char moderne avec tourelle rotative ?|Le Renault FT|Le Saint-Chamond|Le Schneider CA1|Le Char B1|Il a inspiré de nombreux chars étrangers.
+Quel char britannique de 1916 avait des chenilles autour d'une forme en losange ?|Le Mark I|Le Churchill|Le Cromwell|Le Challenger|Il est apparu à la bataille de la Somme.
+Que signifie 'IS' dans le nom du char soviétique IS-2 ?|Iossif Staline|Infanterie Spéciale|Intervention Stratégique|Industrie Soviétique|Le char portait le prénom et le nom du dirigeant soviétique.
+Quel char américain moderne porte le nom d'un général ?|L'Abrams|Le Panzer|Le Leclerc|Le Merkava|Il s'appelle M1 Abrams.
+Quel char britannique de la Seconde Guerre mondiale porte le nom d'un Premier ministre ?|Le Churchill|Le Cromwell|Le Matilda|Le Valentine|Il a été conçu pour franchir des terrains difficiles.
+Quel pays a développé le char Leopard 2 ?|L'Allemagne|La Suède|La Suisse|Les Pays-Bas|Il est utilisé par de nombreuses armées européennes.
+Quel char français moderne succède à l'AMX-30 ?|Le Leclerc|Le Char B1|Le Renault FT|Le Somua S35|Il porte le nom du général Leclerc.
+Quelle bataille de 1943 est considérée comme l'un des plus grands affrontements de chars de l'Histoire ?|Koursk|Stalingrad|El Alamein|Normandie|Elle a eu lieu en Russie, près de Prokhorovka.
+`);
+    D('tanks', 3, `
+Quel char lourd allemand de 1942 pesait environ 57 tonnes ?|Le Tiger I|Le Panther|Le Panzer III|Le Panzer II|Il a été produit à environ 1 300 exemplaires.
+Quel prototype de la Seconde Guerre mondiale, d'environ 188 tonnes, est l'un des chars les plus lourds jamais construits ?|Le Panzer VIII Maus|Le Tiger II|Le IS-3|Le T-34|Il n'a jamais été utilisé au combat.
+Quel char allemand de 1943 a été conçu en réponse au T-34 ?|Le Panther|Le Panzer II|Le Tiger II|Le Elefant|Il reprend l'idée du blindage incliné.
+Quel officier allemand a publié 'Achtung – Panzer !' en 1937 ?|Heinz Guderian|Erwin Rommel|Erich von Manstein|Walter Model|Il a théorisé l'emploi massif des chars.
+Quel pays a conçu le char Merkava ?|Israël|L'Inde|La Turquie|L'Égypte|Il est produit depuis la fin des années 1970.
+Quel char de la guerre froide est l'un des plus produits de l'Histoire, à plus de 50 000 exemplaires ?|Le T-54/55|Le M60|Le Chieftain|Le Centurion|Il est entré en service à la fin des années 1940.
+`);
+
+    /* ---- Questions supplémentaires (facile / moyen / difficile) ---- */
+    D('general', 1, `
+Combien de côtés a un triangle ?|3|4|5|6|Un triangle a trois côtés et trois angles.
+`);
+    D('general', 2, `
+Quelle ville est surnommée la Ville lumière ?|Paris|Lyon|Rome|Vienne|Le surnom date du siècle des Lumières.
+`);
+    D('general', 3, `
+Quel est le plus haut sommet d'Amérique du Nord ?|Le Denali|Le mont Logan|Le mont Whitney|Le mont Rainier|Il culmine à environ 6 190 m.
+`);
+    D('cinema', 1, `
+Quel film met en scène les jouets vivants Woody et Buzz ?|Toy Story|Cars|Monstres & Cie|Là-haut|C'est le premier long métrage Pixar.
+`);
+    D('cinema', 2, `
+Qui a réalisé 'Gladiator' ?|Ridley Scott|Mel Gibson|Oliver Stone|Michael Bay|Russell Crowe y incarne Maximus.
+`);
+    D('cinema', 3, `
+Quel film de 1941, réalisé par Orson Welles, est souvent cité comme l'un des meilleurs de l'histoire ?|Citizen Kane|Casablanca|Autant en emporte le vent|Le Faucon maltais|Il est célèbre pour sa mise en scène novatrice.
+`);
+    D('gaming', 1, `
+Dans quel jeu capture-t-on des créatures avec des Poké Balls ?|Pokémon|Zelda|Mario Kart|Kirby|On les entraîne ensuite pour combattre.
+`);
+    D('gaming', 2, `
+Quel studio a créé 'Baldur's Gate 3' ?|Larian Studios|BioWare|Obsidian|CD Projekt Red|Il est sorti en 2023.
+`);
+    D('gaming', 3, `
+Quelle console de Sega est sortie en 1998 au Japon ?|La Dreamcast|La Saturn|La Mega Drive|La Game Gear|Elle a été arrêtée en 2001.
+`);
+    D('art', 1, `
+Combien de couleurs primaires compte-t-on en peinture traditionnelle ?|3|2|4|5|Rouge, jaune et bleu.
+`);
+    D('art', 2, `
+Qui a peint 'Les Coquelicots' ?|Claude Monet|Edgar Degas|Paul Cézanne|Camille Corot|Le tableau date de 1873.
+`);
+    D('art', 3, `
+Qui a écrit 'Les Hauts de Hurlevent' ?|Emily Brontë|Charlotte Brontë|Jane Austen|George Eliot|Il est paru en 1847.
+`);
+    D('history', 1, `
+Quel animal Hannibal a-t-il emmené en Italie en traversant les Alpes ?|Des éléphants|Des chevaux|Des chameaux|Des lions|Il a affronté Rome pendant la deuxième guerre punique.
+`);
+    D('history', 2, `
+En quelle année a débuté la guerre de Cent Ans ?|1337|1215|1415|1453|Elle oppose la France et l'Angleterre.
+`);
+    D('history', 3, `
+Quel traité de 1494 a partagé le Nouveau Monde entre l'Espagne et le Portugal ?|Le traité de Tordesillas|Le traité de Verdun|Le traité de Troyes|Le traité de Paris|Il trace une ligne dans l'Atlantique.
+`);
+    D('geography', 1, `
+Quel est le continent le plus peuplé ?|L'Asie|L'Afrique|L'Europe|L'Amérique|Elle compte plus de 4 milliards d'habitants.
+`);
+    D('geography', 2, `
+Quelle mer baigne la côte est de l'Italie ?|La mer Adriatique|La mer Tyrrhénienne|La mer Ionienne|La mer Égée|Elle borde Venise et Bari.
+`);
+    D('geography', 3, `
+Quelle est la capitale de l'Éthiopie ?|Addis-Abeba|Nairobi|Khartoum|Asmara|Elle accueille le siège de l'Union africaine.
+`);
+    D('music', 1, `
+Combien de cordes a un violon ?|4|3|5|6|Elles sont accordées en quintes.
+`);
+    D('music', 2, `
+Qui a chanté 'Born This Way' ?|Lady Gaga|Madonna|Katy Perry|Pink|Le titre date de 2011.
+`);
+    D('music', 3, `
+Quel compositeur a écrit 'Les Noces de Figaro' ?|Mozart|Rossini|Verdi|Haydn|L'opéra date de 1786.
+`);
+    D('science', 1, `
+Combien de pattes a une araignée ?|8|6|10|4|C'est un arachnide.
+`);
+    D('science', 2, `
+Quel est le symbole chimique du sodium ?|Na|S|So|Sd|Il vient du latin 'natrium'.
+`);
+    D('science', 3, `
+Quel est le plus grand satellite de Saturne ?|Titan|Encelade|Rhéa|Japet|Titan possède une atmosphère épaisse.
+`);
+    D('sports', 1, `
+Combien d'athlètes composent une équipe de relais 4 × 100 m ?|4|3|5|6|Chaque athlète court 100 m.
+`);
+    D('sports', 2, `
+Quel sport se joue lors du Super Bowl ?|Le football américain|Le baseball|Le rugby|Le hockey|C'est la finale de la NFL.
+`);
+    D('sports', 3, `
+Quel pays compte le plus de victoires en Coupe d'Afrique des nations ?|L'Égypte|Le Cameroun|Le Ghana|La Côte d'Ivoire|Elle en compte 7.
+`);
+    D('cuisine', 1, `
+Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate douce|Le manioc|On la coupe en bâtonnets avant de la frire.
+`);
+
+    /* ---- Gros lot de questions (1 = facile, 2 = moyen, 3 = difficile) ---- */
+    const DD = (cat, txt) => txt.trim().split('\n').forEach(l => { const [d, ...r] = l.split('|'); addQD(cat, +d, [r.join('|')]); });
+    DD('general', `
+1|Quel est le plus grand animal terrestre ?|L'éléphant d'Afrique|La girafe|Le rhinocéros|L'hippopotame|Il peut peser plus de 6 tonnes.
+2|Quelle est la monnaie du Royaume-Uni ?|La livre sterling|L'euro|Le dollar|La couronne|Elle est divisée en pence.
+2|Quel est le plus vaste pays entièrement situé en Europe ?|L'Ukraine|La France|L'Espagne|La Suède|Elle couvre environ 600 000 km².
+3|Quel pays compte le plus de lacs au monde ?|Le Canada|La Finlande|La Russie|Les États-Unis|Il en possède plus de 2 millions.
+`);
+    DD('cinema', `
+1|Quel film d'animation met en scène de petites créatures jaunes qui aiment les bananes ?|Les Minions|Les Schtroumpfs|Les Simpson|Shrek|Ils sont nés dans 'Moi, moche et méchant'.
+2|Qui a réalisé 'E.T. l'extra-terrestre' ?|Steven Spielberg|George Lucas|James Cameron|Tim Burton|Le film est sorti en 1982.
+2|Quel film de 1994 met en scène Vincent Vega et Jules Winnfield ?|Pulp Fiction|Les Évadés|Forrest Gump|Léon|Il a été réalisé par Quentin Tarantino.
+3|Qui a réalisé 'Les Sept Samouraïs' ?|Akira Kurosawa|Yasujirō Ozu|Kenji Mizoguchi|Hayao Miyazaki|Le film date de 1954.
+`);
+    DD('gaming', `
+1|Comment s'appelle la princesse que Link doit sauver dans la série Zelda ?|Zelda|Peach|Samus|Daisy|Elle porte le même nom que la série.
+2|Quel jeu de Rockstar de 2013 se déroule à Los Santos ?|GTA V|Red Dead Redemption|Max Payne 3|L.A. Noire|Il est sorti en septembre 2013.
+3|Quel jeu de 1986 a lancé la série Metroid ?|Metroid|Kid Icarus|Castlevania|Mega Man|Il est sorti sur NES.
+3|Quelle société a créé la série Final Fantasy ?|Square (Square Enix)|Capcom|Konami|Namco|Le premier épisode date de 1987.
+`);
+    DD('art', `
+1|Qui a écrit 'Le Petit Chaperon rouge' dans sa version la plus célèbre ?|Charles Perrault|Jules Verne|Victor Hugo|Molière|Il l'a publié en 1697.
+2|Qui a peint 'La Danse' et 'La Desserte rouge' ?|Henri Matisse|Pablo Picasso|Paul Gauguin|Raoul Dufy|Il est chef de file du fauvisme.
+2|Quel musée parisien est installé dans une ancienne gare ?|Le musée d'Orsay|Le Louvre|Le Centre Pompidou|Le Grand Palais|Il abrite de nombreuses œuvres impressionnistes.
+3|Quel architecte a conçu la pyramide du Louvre ?|Ieoh Ming Pei|Le Corbusier|Renzo Piano|Jean Nouvel|Elle a été inaugurée en 1989.
+`);
+    DD('history', `
+1|Quelle reine d'Angleterre était surnommée la Reine Vierge ?|Élisabeth Ire|Victoria|Marie Stuart|Anne|Elle a régné de 1558 à 1603.
+2|Quel pays a vendu l'Alaska aux États-Unis en 1867 ?|La Russie|Le Canada|Le Royaume-Uni|La France|Le prix était de 7,2 millions de dollars.
+2|En quelle année Jeanne d'Arc a-t-elle délivré Orléans ?|1429|1415|1453|1337|Elle a levé le siège en mai 1429.
+3|Quel empereur romain a légalisé le christianisme par l'édit de Milan en 313 ?|Constantin|Auguste|Trajan|Dioclétien|Il a aussi fondé Constantinople.
+`);
+    DD('geography', `
+1|Dans quel pays se trouve la tour de Pise ?|L'Italie|L'Espagne|La Grèce|La France|Elle est célèbre pour son inclinaison.
+2|Quel est le plus grand pays d'Amérique du Nord par sa superficie ?|Le Canada|Les États-Unis|Le Mexique|Cuba|Il est le deuxième plus grand pays du monde.
+2|Quel détroit sépare l'Asie de l'Amérique du Nord ?|Le détroit de Béring|Le détroit de Magellan|Le détroit de Gibraltar|Le Bosphore|Il relie l'océan Arctique au Pacifique.
+3|Quelle est la capitale de la Slovaquie ?|Bratislava|Ljubljana|Zagreb|Budapest|Elle est située au bord du Danube.
+`);
+    DD('music', `
+1|Quel instrument à vent est typique de l'Écosse ?|La cornemuse|La flûte|Le saxophone|La trompette|On la joue souvent avec un kilt.
+2|Qui a chanté 'Shape of You' ?|Ed Sheeran|Justin Bieber|Sam Smith|Harry Styles|Le titre date de 2017.
+3|Quel compositeur a écrit 'Le Lac des cygnes' ?|Tchaïkovski|Stravinsky|Prokofiev|Rachmaninov|Le ballet date de 1876.
+`);
+    DD('science', `
+1|Combien de dents de lait compte un enfant ?|20|28|32|16|Elles sont remplacées par les dents définitives.
+2|Quelle galaxie est la grande voisine de la Voie lactée ?|Andromède|Le Triangle|Le Grand Nuage de Magellan|Messier 87|Elle est visible à l'œil nu dans un ciel très noir.
+2|Quel est le principal composant du sable ?|La silice|Le calcaire|L'argile|Le sel|Il provient de roches érodées.
+3|Quel est le zéro absolu en degrés Celsius ?|-273,15 °C|-100 °C|-300 °C|-459 °C|Cela correspond à 0 kelvin.
+`);
+    DD('sports', `
+1|Combien de joueurs compte une équipe de rugby à 7 ?|7|6|8|5|Le rugby à 7 est olympique depuis 2016.
+2|Quel pays a gagné la Coupe du monde de football 2018 ?|La France|La Croatie|La Belgique|L'Angleterre|La finale a eu lieu à Moscou.
+2|Quel sport pratique Teddy Riner ?|Le judo|La lutte|Le karaté|Le taekwondo|Il est multiple champion olympique et du monde.
+3|Quelle ville a accueilli les Jeux olympiques d'été de 2016 ?|Rio de Janeiro|Tokyo|Londres|Pékin|C'était la première fois en Amérique du Sud.
+`);
+    DD('cuisine', `
+1|Quel fromage à pâte pressée est célèbre pour ses trous ?|L'emmental|Le brie|Le chèvre frais|Le roquefort|Les trous viennent de bulles de gaz.
+2|Quelle viande entre dans un bœuf bourguignon ?|Le bœuf|Le porc|Le poulet|L'agneau|Il mijote dans du vin rouge.
+3|Quelle graine sert à fabriquer le tahini ?|Le sésame|Le tournesol|L'arachide|Le pois chiche|Cette pâte entre dans la recette du houmous.
+`);
+    DD('tanks', `
+1|Comment s'appelle la partie rotative d'un char qui porte le canon ?|La tourelle|Le châssis|La chenille|Le moteur|Elle peut pivoter pour viser dans toutes les directions.
+2|Quel char britannique de 1940 était surnommé la Reine du désert ?|Le Matilda II|Le Cromwell|Le Challenger|Le Crusader|Il était très bien blindé pour son époque.
+2|Quel pays a conçu le char T-72 ?|L'URSS|L'Allemagne|La Chine|La Pologne|Il est entré en service en 1973.
+3|Quel char américain de 1945 porte le nom d'un général de la Première Guerre mondiale ?|Le M26 Pershing|Le M3 Lee|Le M24 Chaffee|Le M10 Wolverine|John J. Pershing commandait le corps expéditionnaire américain.
+`);
+    DD('manga', `
+1|Quel manga met en scène Luffy et son équipage de pirates ?|One Piece|Naruto|Bleach|Dragon Ball|Luffy rêve de devenir le roi des pirates.
+2|Quel manga a pour héros Naruto Uzumaki ?|Naruto|Fairy Tail|Black Clover|Hunter x Hunter|Il rêve de devenir Hokage.
+2|Qui est l'auteur de Dragon Ball ?|Akira Toriyama|Eiichiro Oda|Masashi Kishimoto|Hajime Isayama|Le manga est paru à partir de 1984.
+3|Quel studio a produit le film 'Princesse Mononoké' ?|Le studio Ghibli|Toei Animation|Madhouse|MAPPA|Il est sorti en 1997.
+`);
+    DD('math', `
+1|Combien font 7 × 8 ?|56|54|48|64|C'est une table de multiplication classique.
+2|Quelle est la valeur approchée de pi ?|3,14|2,71|1,62|3,41|Pi est le rapport entre la circonférence et le diamètre d'un cercle.
+2|Quelle est la somme des angles d'un triangle ?|180°|90°|270°|360°|C'est vrai en géométrie plane.
+3|Quel est le plus petit nombre premier ?|2|1|0|3|C'est aussi le seul nombre premier pair.
+`);
+
+    /* ---- CATÉGORIE HALLOWEEN : 20 questions (6 faciles, 8 moyennes, 6 difficiles) ---- */
+    QUESTION_BANK.halloween = [];
+    DD('halloween', `
+1|Quel légume-fruit orange sculpte-t-on pour Halloween ?|La citrouille|L'orange|La mandarine|Le melon|On y creuse un visage et on place une bougie dedans.
+1|Que disent les enfants en demandant des bonbons à Halloween ?|Trick or treat|Merry Christmas|Happy birthday|Open sesame|Cela veut dire « des bonbons ou un sort ».
+1|À quelle date fête-t-on Halloween ?|Le 31 octobre|Le 1er novembre|Le 24 octobre|Le 25 décembre|C'est la veille de la Toussaint.
+1|Quel animal noir est souvent associé aux sorcières ?|Le chat|Le lapin|Le chien|Le cheval|Il est devenu un symbole d'Halloween.
+1|Quel monstre est enveloppé de bandelettes ?|La momie|Le vampire|Le loup-garou|Le zombie|Elle vient de l'Égypte antique.
+1|Que porte souvent une sorcière sur la tête ?|Un chapeau pointu|Une casquette|Un béret|Un casque|Il est noir et pointu.
+2|De quel pays viennent les racines d'Halloween ?|L'Irlande|La France|L'Italie|L'Allemagne|Elles remontent à une fête celte.
+2|Comment s'appelle la fête celte à l'origine d'Halloween ?|Samhain|Beltane|Imbolc|Lughnasadh|Elle marquait la fin de l'été.
+2|Quel vampire célèbre est né sous la plume de Bram Stoker ?|Dracula|Nosferatu|Lestat|Edward Cullen|Le roman est paru en 1897.
+2|Quel roman de Mary Shelley met en scène une créature fabriquée par un savant ?|Frankenstein|Dracula|Docteur Jekyll et Mister Hyde|Le Fantôme de l'Opéra|Il est paru en 1818.
+2|Quel film d'animation met en scène Jack Skellington ?|L'Étrange Noël de monsieur Jack|Les Noces funèbres|Beetlejuice|Coraline|Il est sorti en 1993.
+2|Dans quelle ville fictive se déroule le film 'Halloween' (1978) ?|Haddonfield|Salem|Derry|Castle Rock|C'est là que Michael Myers sévit.
+2|Quelle ville américaine est célèbre pour son procès de sorcières en 1692 ?|Salem|Boston|Détroit|Philadelphie|Il a eu lieu dans le Massachusetts.
+2|Quel insecte tisse les toiles qui décorent les maisons d'Halloween ?|L'araignée|La mouche|La fourmi|Le scarabée|De fausses toiles couvrent les portes et les arbres.
+3|Que creusait-on à l'origine en Irlande pour faire une lanterne ?|Un navet|Une citrouille|Une courgette|Une betterave|La citrouille l'a remplacé aux États-Unis.
+3|Quel est le nom du clown du roman 'Ça' de Stephen King ?|Pennywise|Joker|Chucky|Jack|Il vit dans les égouts de Derry.
+3|Qui a écrit 'Le Fantôme de l'Opéra' ?|Gaston Leroux|Victor Hugo|Maurice Leblanc|Alexandre Dumas|Le roman est paru en 1910.
+3|Quel écrivain américain a écrit le poème 'Le Corbeau' ?|Edgar Allan Poe|H. P. Lovecraft|Stephen King|Mark Twain|Le poème date de 1845.
+3|Dans quel pays fête-t-on le Día de los Muertos ?|Le Mexique|L'Espagne|Le Brésil|Le Pérou|Elle a lieu les 1er et 2 novembre.
+3|Quel film d'horreur de 1973 met en scène une fillette possédée ?|L'Exorciste|Carrie|Rosemary's Baby|La Malédiction|Il a été réalisé par William Friedkin.
+`);
+
+    /* ---- Encore des questions dans toutes les catégories ---- */
+    DD('general', `
+2|Quelle est la capitale du Chili ?|Santiago|Lima|Bogota|Quito|Elle est au pied des Andes.
+3|Quel est le deuxième plus grand pays du monde par sa superficie ?|Le Canada|La Chine|Les États-Unis|Le Brésil|Il couvre près de 10 millions de km².
+`);
+    DD('cinema', `
+1|Quel film Disney met en scène la princesse Ariel ?|La Petite Sirène|La Belle et la Bête|Aladdin|Mulan|Elle rêve de vivre sur terre.
+3|Quel acteur joue Jack Torrance dans 'Shining' ?|Jack Nicholson|Robert De Niro|Al Pacino|Anthony Perkins|Le film a été réalisé par Stanley Kubrick.
+`);
+    DD('gaming', `
+1|Dans quel jeu doit-on fuir quatre fantômes colorés ?|Pac-Man|Tetris|Pong|Doom|Il se déroule dans un labyrinthe.
+3|Quel jeu de 1992 a popularisé le tir en vue subjective ?|Wolfenstein 3D|Doom|Quake|Duke Nukem 3D|Il est sorti en 1992.
+`);
+    DD('art', `
+2|Qui a peint 'La Persistance de la mémoire' et ses montres molles ?|Salvador Dalí|René Magritte|Max Ernst|Joan Miró|Elle date de 1931.
+3|Qui a peint 'Les Époux Arnolfini' ?|Jan van Eyck|Rogier van der Weyden|Hans Memling|Jérôme Bosch|Il date de 1434.
+`);
+    DD('history', `
+2|Quel empereur français a été vaincu à Waterloo ?|Napoléon Ier|Louis XVIII|Napoléon III|Charles X|La bataille a eu lieu en 1815.
+3|Quelle année voit la chute de Constantinople aux mains des Ottomans ?|1453|1492|1204|1066|Elle marque la fin de l'Empire byzantin.
+`);
+    DD('geography', `
+2|Quel est le plus grand lac d'Europe ?|Le lac Ladoga|Le lac Léman|Le lac Balaton|Le lac Vänern|Il se trouve en Russie.
+3|Quelle est la capitale de la Lituanie ?|Vilnius|Riga|Tallinn|Minsk|Elle est la plus grande ville du pays.
+`);
+    DD('music', `
+1|Quel instrument à cordes pince-t-on avec les doigts et possède une grande caisse en forme d'arc ?|La harpe|Le violon|Le piano|La flûte|Elle compte environ 47 cordes.
+3|Quel groupe a sorti l'album 'Abbey Road' ?|The Beatles|The Rolling Stones|Pink Floyd|Queen|Il est sorti en 1969.
+`);
+    DD('science', `
+2|Quelle partie de la cellule contient l'ADN ?|Le noyau|La membrane|Le cytoplasme|La mitochondrie|C'est le centre de contrôle de la cellule.
+3|Comment s'appelle la division cellulaire qui produit deux cellules identiques ?|La mitose|La méiose|La fécondation|La photosynthèse|Elle permet la croissance des organismes.
+`);
+    DD('sports', `
+2|Combien de joueurs aligne une équipe de hockey sur gazon ?|11|9|7|15|Chaque équipe aligne 11 joueurs.
+3|Quelle ville a accueilli les Jeux olympiques d'été de 1992 ?|Barcelone|Atlanta|Séoul|Sydney|Ils ont eu lieu en Espagne.
+`);
+    DD('cuisine', `
+2|Quel plat de nouilles sautées est un classique de Thaïlande ?|Le pad thaï|Le pho|Le ramen|Le chow mein|Il se sert avec des cacahuètes et du citron vert.
+2|Quelle ville de Bourgogne est célèbre pour sa moutarde ?|Dijon|Reims|Strasbourg|Nancy|Elle y est fabriquée depuis le Moyen Âge.
+`);
+    DD('tanks', `
+1|Quel pays a construit le char Challenger 2 ?|Le Royaume-Uni|La France|L'Allemagne|L'Italie|Il équipe l'armée britannique.
+3|Quel char français des années 1930 était un char lourd armé d'un canon de 75 mm ?|Le Char B1|Le Renault FT|Le Somua S35|Le Hotchkiss H35|Il a été utilisé en 1940.
+`);
+    DD('manga', `
+2|Quel manga raconte la lutte d'Eren Yeager contre les Titans ?|L'Attaque des Titans|Death Note|Tokyo Ghoul|Demon Slayer|Hajime Isayama en est l'auteur.
+3|Qui a écrit le scénario de Death Note ?|Tsugumi Ohba|Eiichiro Oda|Naoki Urasawa|Hiromu Arakawa|Takeshi Obata l'a dessiné.
+`);
+    DD('math', `
+2|Combien vaut 15 % de 200 ?|30|15|25|20|Il suffit de calculer 0,15 × 200.
+3|Quelle est la valeur de 5 factorielle (5!) ?|120|25|60|100|C'est 5 × 4 × 3 × 2 × 1.
 `);
 
     /* ---- Nettoyage final : doublons retirés, puis tri par type (QCM → cartes → drapeaux), puis par difficulté (facile → difficile) ---- */
