@@ -352,7 +352,7 @@
   </main>
 
   <footer class="p-4 text-center text-xs text-slate-500 border-t border-slate-800/50">
-    Quiz Party &copy; 2026 - Jeu de Quiz Multijoueur & Bots - Cartographie sans clé d'API
+    Quiz Party &copy; 2026 - Jeu de Quiz Multijoueur & Bots - Cartographie sans clé d'API - Images des chars : Wikipédia / Wikimedia Commons
   </footer>
 
   <script>
@@ -458,7 +458,8 @@
       { id: "math", name: "Mathématiques", icon: "fa-calculator", color: "from-indigo-500 to-blue-700" },
       { id: "cuisine", name: "Cuisine", icon: "fa-utensils", color: "from-orange-400 to-red-500" },
       { id: "tanks", name: "Chars d'assaut", icon: "fa-shield-halved", color: "from-lime-600 to-green-800" },
-      { id: "halloween", name: "Halloween", icon: "fa-ghost", color: "from-orange-500 to-purple-800" }
+      { id: "halloween", name: "Halloween", icon: "fa-ghost", color: "from-orange-500 to-purple-800" },
+      { id: "objects", name: "Chars expérimentaux russes", icon: "fa-gears", color: "from-red-700 to-stone-700" }
     ];
 
     /* =========================================================================
@@ -1838,6 +1839,55 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
        2. GLOBAL STATE & SYSTEM VARIABLES
        ========================================================================= */
     const $ = id => document.getElementById(id);
+    /* ---- CATÉGORIE CHARS EXPÉRIMENTAUX RUSSES (« Objets ») : images chargées en direct depuis Wikipédia / Wikimedia ---- */
+    QUESTION_BANK.objects = [];
+    const OBJ_TANKS = [
+      { t: 'Object 279', n: 'Objet 279', d: 1, e: "Char lourd expérimental de 1959 : coque ovale en « soucoupe » et quatre chenilles." },
+      { t: 'IS-7', n: 'IS-7 (Objet 260)', d: 1, e: "Char lourd soviétique de 1948 armé d'un canon de 130 mm." },
+      { t: 'Black Eagle (tank)', n: 'Objet 640 « Aigle noir »', d: 2, e: "Prototype des années 1990 construit à Omsk, dérivé du T-80U." },
+      { t: 'Object 195', n: 'Objet 195 (T-95)', d: 2, e: "Char de nouvelle génération développé dans les années 2000, abandonné en 2010." },
+      { t: 'IT-1', n: 'IT-1 (Objet 150)', d: 2, e: "Chasseur de chars à missiles des années 1960, sans canon principal." },
+      { t: 'Object 477', n: 'Objet 477 « Molot »', d: 3, e: "Projet de char à canon de 152 mm de la fin de la guerre froide." },
+      { t: 'Object 140', n: 'Objet 140', d: 3, e: "Prototype de char moyen des années 1950." },
+      { t: 'Object 187', n: 'Objet 187', d: 3, e: "Prototype de char de combat soviétique de la fin de la guerre froide." },
+      { t: 'Object 292', n: 'Objet 292', d: 3, e: "Prototype de char armé d'un canon de 152 mm." },
+      { t: 'Object 299', n: 'Objet 299', d: 3, e: "Autre prototype soviétique armé d'un canon de 152 mm." },
+      { t: 'Object 430', n: 'Objet 430', d: 3, e: "Un des premiers prototypes de la famille du T-64." },
+      { t: 'Object 775', n: 'Objet 775', d: 3, e: "Char expérimental à missiles des années 1960." },
+      { t: 'Object 277', n: 'Objet 277', d: 3, e: "Char lourd expérimental de Leningrad, fin des années 1950." },
+      { t: 'Object 770', n: 'Objet 770', d: 3, e: "Char lourd expérimental de Tcheliabinsk, fin des années 1950." }
+    ];
+    async function loadObjectTanks() {
+      try {
+        const url = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=700&titles=' + encodeURIComponent(OBJ_TANKS.map(o => o.t).join('|'));
+        const j = await (await fetch(url)).json();
+        const qy = j.query || {}, norm = {}, redir = {}, pages = {};
+        (qy.normalized || []).forEach(x => norm[x.from] = x.to);
+        (qy.redirects || []).forEach(x => redir[x.from] = x.to);
+        Object.values(qy.pages || {}).forEach(p => { pages[p.title] = p; });
+        const found = [];
+        OBJ_TANKS.forEach(o => {
+          let t = o.t; t = norm[t] || t; t = redir[t] || t;
+          const p = pages[t];
+          if (p && p.thumbnail) found.push({ ...o, img: p.thumbnail.source });
+        });
+        const ok = await Promise.all(found.map(o => new Promise(res => {
+          const im = new Image(), to = setTimeout(() => res(false), 8000);
+          im.onload = () => { clearTimeout(to); res(true); };
+          im.onerror = () => { clearTimeout(to); res(false); };
+          im.src = o.img;
+        })));
+        const good = found.filter((_, i) => ok[i]);
+        if (good.length < 4) return;
+        const sh = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const k = Math.floor(Math.random() * (i + 1)); [a[i], a[k]] = [a[k], a[i]]; } return a; };
+        QUESTION_BANK.objects = good.map(o => {
+          const wrong = sh(good.filter(x => x !== o)).slice(0, 3).map(x => x.n);
+          return { ...mc("Quel est ce char expérimental soviétique / russe ?", o.n, wrong, o.e), type: 'flag', flag: o.img, big: true, d: o.d };
+        });
+      } catch (e) { /* hors ligne : la catégorie reste indisponible */ }
+    }
+    document.addEventListener('DOMContentLoaded', loadObjectTanks);
+
     let selectedCategory = "mixed";
     let botCount = 3;
     let teamMode = false;
@@ -1957,6 +2007,10 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
     function startGame() {
       if (net.role !== 'guest' && !requirePseudo()) return;
       if (net.role === 'guest') return;
+      if (selectedCategory === 'objects' && QUESTION_BANK.objects.length < 4) {
+        alert("Les images des chars sont encore en cours de chargement (ou Wikipédia est injoignable). Réessaie dans quelques secondes.");
+        return;
+      }
       botCount = parseInt(document.getElementById('select-bots').value);
       teamMode = document.getElementById('select-mode').value === 'teams';
       if (teamMode && botCount + (net.role === 'host' ? net.humans.length : 0) < 1) {
@@ -2058,7 +2112,9 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
       } else {
         if (q.type === "flag") {
           document.getElementById('question-media').classList.remove('hidden');
-          document.getElementById('flag-img').src = q.flag;
+          const fimg = document.getElementById('flag-img');
+          fimg.className = (q.big ? 'max-h-60 md:max-h-80 w-auto max-w-full' : 'h-28 md:h-36') + ' rounded-xl border-2 border-slate-700 shadow-xl object-contain';
+          fimg.src = q.flag;
         }
         renderMCQQuestion(q);
       }
