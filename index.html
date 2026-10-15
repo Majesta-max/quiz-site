@@ -293,6 +293,7 @@
 
       <p id="answer-note" class="text-center text-xs text-amber-300 min-h-[1rem]"></p>
       <!-- Map Locator View (Leaflet) -->
+      <div id="place-container" class="hidden"></div>
       <div id="map-container" class="hidden space-y-3">
         <div class="text-xs font-semibold text-center text-amber-300 bg-amber-500/10 border border-amber-500/30 p-2 rounded-xl">
           📍 Cliquez sur la carte pour placer votre repère puis validez !
@@ -1822,6 +1823,174 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
 3|Quelle est la valeur de 5 factorielle (5!) ?|120|25|60|100|C'est 5 × 4 × 3 × 2 × 1.
 `);
 
+    /* ---- CHARS : questions interactives « remettre à la place » ---- */
+    const tankMark = (n, x, y) => `<circle cx="${x}" cy="${y}" r="12" fill="#f59e0b" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1917">${n}</text>`;
+    const TANK_SVG = '<svg viewBox="0 0 320 160" class="w-full" xmlns="http://www.w3.org/2000/svg">'
+      + '<rect x="40" y="86" width="200" height="30" rx="6" fill="#55633f"/><rect x="95" y="52" width="95" height="38" rx="12" fill="#66784d"/>'
+      + '<rect x="185" y="66" width="105" height="9" rx="3" fill="#3f4a2f"/><rect x="30" y="112" width="225" height="30" rx="15" fill="#2b2f24"/>'
+      + '<g fill="#6b705f"><circle cx="58" cy="127" r="10"/><circle cx="98" cy="127" r="10"/><circle cx="138" cy="127" r="10"/><circle cx="178" cy="127" r="10"/><circle cx="218" cy="127" r="10"/></g>'
+      + tankMark(1, 265, 70) + tankMark(2, 235, 127) + tankMark(3, 142, 70) + tankMark(4, 200, 100) + '</svg>';
+    QUESTION_BANK.tanks.push(
+      { type: 'place', d: 1, q: "Remets chaque nom à sa place sur le schéma du char (touche un nom, puis un numéro).", svg: TANK_SVG, slots: ['1', '2', '3', '4'], items: ['Le canon', 'Les chenilles', 'La tourelle', 'La caisse (coque)'], answer: [0, 1, 2, 3], explanation: "Le canon est monté sur la tourelle, qui pivote sur la caisse. Les chenilles portent l'ensemble." },
+      { type: 'place', d: 3, q: "Remets ces chars russes et soviétiques dans l'ordre d'apparition.", slots: ['1er', '2e', '3e', '4e', '5e'], items: ['T-34', 'IS-2', 'T-54', 'T-72', 'T-14 Armata'], answer: [0, 1, 2, 3, 4], explanation: "T-34 (1940), IS-2 (1944), T-54 (1947), T-72 (1973) et T-14 Armata (présenté en 2015)." },
+      { type: 'place', d: 2, q: "Associe chaque char russe ou soviétique à son époque.", slots: ['T-34', 'T-72', 'T-14 Armata'], items: ['Seconde Guerre mondiale', 'Guerre froide (années 1970)', 'Années 2010'], answer: [0, 1, 2], explanation: "Le T-34 date de 1940, le T-72 de 1973 et le T-14 Armata a été présenté en 2015." },
+      { type: 'place', d: 2, q: "Associe chaque char à son pays d'origine.", slots: ['T-34', 'M4 Sherman', 'Leopard 2', 'Leclerc'], items: ['URSS', 'États-Unis', 'Allemagne', 'France'], answer: [0, 1, 2, 3], explanation: "Le T-34 est soviétique, le Sherman américain, le Leopard 2 allemand et le Leclerc français." },
+      { type: 'place', d: 2, q: "Associe chaque char moderne à son pays.", slots: ['Merkava', 'Challenger 2', 'Abrams', 'Type 90'], items: ['Israël', 'Royaume-Uni', 'États-Unis', 'Japon'], answer: [0, 1, 2, 3], explanation: "Le Merkava est israélien, le Challenger 2 britannique, l'Abrams américain et le Type 90 japonais." },
+      { type: 'place', d: 3, q: "Remets ces chars dans l'ordre de leur apparition.", slots: ['1er', '2e', '3e', '4e', '5e'], items: ['Mark I', 'Renault FT', 'Panzer IV', 'Tiger I', 'M1 Abrams'], answer: [0, 1, 2, 3, 4], explanation: "Mark I (1916), Renault FT (1917), Panzer IV (1939), Tiger I (1942) et M1 Abrams (1980)." }
+    );
+
+    /* ---- CHARS : nouvelles questions interactives avec schémas dessinés ---- */
+    const SIDE_SVG = '<svg viewBox="0 0 340 170" class="w-full" xmlns="http://www.w3.org/2000/svg">'
+      + '<rect x="34" y="108" width="266" height="32" rx="16" fill="#2b2f24"/>'
+      + '<polygon points="50,112 65,84 240,84 292,112" fill="#55633f"/>'
+      + '<path d="M118 84 L128 56 Q168 44 208 56 L216 84 Z" fill="#66784d"/><rect x="205" y="62" width="115" height="8" rx="3" fill="#3f4a2f"/>'
+      + '<g fill="#6b705f"><circle cx="85" cy="124" r="11"/><circle cx="125" cy="124" r="11"/><circle cx="165" cy="124" r="11"/><circle cx="205" cy="124" r="11"/><circle cx="245" cy="124" r="11"/></g>'
+      + '<circle cx="48" cy="124" r="14" fill="#8a8f7a"/><circle cx="284" cy="124" r="12" fill="#6b705f"/>'
+      + tankMark(1, 306, 66) + tankMark(2, 168, 68) + tankMark(3, 150, 98) + tankMark(4, 280, 140) + tankMark(5, 165, 124) + tankMark(6, 48, 124) + '</svg>';
+    const TOP_SVG = '<svg viewBox="0 0 320 170" class="w-full" xmlns="http://www.w3.org/2000/svg">'
+      + '<rect x="40" y="36" width="225" height="26" rx="10" fill="#2b2f24"/><rect x="40" y="108" width="225" height="26" rx="10" fill="#2b2f24"/>'
+      + '<rect x="55" y="56" width="195" height="58" rx="6" fill="#55633f"/><rect x="150" y="81" width="150" height="8" rx="3" fill="#3f4a2f"/>'
+      + '<circle cx="140" cy="85" r="27" fill="#66784d"/><circle cx="130" cy="78" r="6" fill="#3f4a2f"/>'
+      + tankMark(1, 280, 85) + tankMark(2, 118, 96) + tankMark(3, 215, 102) + tankMark(4, 90, 49) + '</svg>';
+    const sil = inner => '<svg viewBox="0 0 120 60" class="w-full" xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>';
+    const SILHOUETTES = [
+      sil('<polygon points="8,50 32,12 92,12 114,50" fill="#55633f" stroke="#2b2f24" stroke-width="6" stroke-linejoin="round"/><rect x="46" y="26" width="26" height="14" rx="3" fill="#3f4a2f"/><rect x="72" y="30" width="16" height="4" fill="#3f4a2f"/>'),
+      sil('<rect x="12" y="38" width="96" height="16" rx="8" fill="#2b2f24"/><rect x="22" y="30" width="76" height="14" rx="3" fill="#55633f"/><path d="M46 30 Q58 6 76 30 Z" fill="#66784d"/><rect x="74" y="18" width="22" height="4" fill="#3f4a2f"/>'),
+      sil('<rect x="10" y="40" width="100" height="14" rx="7" fill="#2b2f24"/><polygon points="14,42 22,26 82,26 108,42" fill="#55633f"/><path d="M40 26 L44 12 Q58 6 72 12 L76 26 Z" fill="#66784d"/><rect x="72" y="16" width="44" height="4" fill="#3f4a2f"/>'),
+      sil('<rect x="8" y="40" width="104" height="14" rx="7" fill="#2b2f24"/><rect x="12" y="32" width="96" height="12" rx="2" fill="#55633f"/><polygon points="34,32 40,14 84,14 90,32" fill="#66784d"/><rect x="84" y="20" width="34" height="4" fill="#3f4a2f"/>')
+    ];
+    QUESTION_BANK.tanks.push(
+      { type: 'place', d: 2, q: "Replace chaque pièce sur le char vu de profil (touche un nom, puis un numéro).", svg: SIDE_SVG, slots: ['1', '2', '3', '4', '5', '6'], items: ['Le canon', 'La tourelle', 'La caisse (coque)', 'Les chenilles', 'Les galets (roues porteuses)', 'Le barbotin (roue motrice)'], answer: [0, 1, 2, 3, 4, 5], explanation: "Sur un char de type soviétique, la roue motrice (barbotin) est à l'arrière. Les galets portent la chenille." },
+      { type: 'place', d: 1, q: "Replace chaque pièce sur le char vu de dessus.", svg: TOP_SVG, slots: ['1', '2', '3', '4'], items: ['Le canon', 'La tourelle', 'La caisse (coque)', 'Une chenille'], answer: [0, 1, 2, 3], explanation: "Vu de dessus, la tourelle ronde est posée sur la caisse, entre les deux chenilles." },
+      { type: 'place', d: 2, q: "Associe chaque silhouette (schéma simplifié) à son char.", slots: ['A', 'B', 'C', 'D'], slotsSvg: SILHOUETTES, items: ['Mark I', 'Renault FT', 'T-34', 'M1 Abrams'], answer: [0, 1, 2, 3], explanation: "Le Mark I a une forme en losange, le Renault FT une petite tourelle ronde, le T-34 un blindage incliné et l'Abrams une tourelle large et basse." },
+      { type: 'place', d: 2, q: "Replace chaque membre d'équipage à son rôle.", slots: ['Commandant', 'Tireur', 'Chargeur', 'Conducteur'], items: ["Dirige l'équipage et observe", 'Vise avec le canon', 'Met les obus dans le canon', 'Pilote le char'], answer: [0, 1, 2, 3], explanation: "Un char compte plusieurs rôles : commander, viser, charger et conduire." },
+      { type: 'place', d: 1, q: "Associe chaque pièce du char à son rôle.", slots: ['Chenilles', 'Blindage', 'Tourelle', 'Moteur'], items: ['Permettent de rouler sur tous les terrains', "Protège l'équipage", 'Pivote pour viser', 'Fait avancer le char'], answer: [0, 1, 2, 3], explanation: "Chaque pièce a un rôle : rouler, protéger, viser et propulser." }
+    );
+
+    /* ---- QUESTIONS INTERACTIVES (à replacer) dans toutes les catégories ---- */
+    const PL = (cat, d, q, pairs, explanation) => {
+      const pr = pairs.split(';').map(x => x.split('='));
+      QUESTION_BANK[cat].push({ type: 'place', d, q, slots: pr.map(x => x[0]), items: pr.map(x => x[1]), answer: pr.map((_, i) => i), explanation });
+    };
+    // Manga / anime
+    PL('manga', 1, "Associe chaque héros à son manga.", "Luffy=One Piece;Naruto=Naruto;Goku=Dragon Ball;Light Yagami=Death Note", "Luffy est pirate, Naruto ninja, Goku combattant et Light possède un carnet mortel.");
+    PL('manga', 2, "Associe chaque manga à son auteur.", "One Piece=Eiichiro Oda;Dragon Ball=Akira Toriyama;Naruto=Masashi Kishimoto;L'Attaque des Titans=Hajime Isayama", "Ce sont quatre des mangakas les plus célèbres.");
+    PL('manga', 2, "Associe chaque héros à son pouvoir ou sa technique.", "Naruto=Rasengan;Goku=Kaméhaméha;Luffy=Corps élastique (Gomu Gomu);Tanjiro=Respiration de l'eau", "Chaque héros a une attaque ou un pouvoir qui le rend reconnaissable.");
+    PL('manga', 3, "Associe chaque film d'animation à son réalisateur.", "Le Voyage de Chihiro=Hayao Miyazaki;Your Name=Makoto Shinkai;Perfect Blue=Satoshi Kon;Akira=Katsuhiro Otomo", "Quatre grands noms du cinéma d'animation japonais.");
+    PL('manga', 3, "Remets ces mangas dans l'ordre de leur début de publication.", "Dragon Ball=Dragon Ball;One Piece=One Piece;Naruto=Naruto;Death Note=Death Note;L'Attaque des Titans=L'Attaque des Titans".replace(/^(.*)$/, "1er=Dragon Ball;2e=One Piece;3e=Naruto;4e=Death Note;5e=L'Attaque des Titans"), "Dragon Ball (1984), One Piece (1997), Naruto (1999), Death Note (2003), L'Attaque des Titans (2009).");
+    PL('manga', 2, "Associe chaque héros à son groupe.", "Luffy=Les Chapeaux de paille;Naruto=Le village de Konoha;Eren=Le Bataillon d'exploration;Tanjiro=Les Pourfendeurs de démons", "Chaque héros appartient à un groupe ou une organisation.");
+    PL('manga', 1, "Associe chaque compagnon à son héros.", "Pikachu=Sacha;Doraemon=Nobita;Happy=Natsu;Chopper=Luffy", "Ces compagnons sont inséparables de leur héros.");
+    PL('manga', 2, "Associe chaque personnage du studio Ghibli à son film.", "Totoro=Mon voisin Totoro;Kiki=Kiki la petite sorcière;Chihiro=Le Voyage de Chihiro;San=Princesse Mononoké", "Quatre films du studio Ghibli.");
+    // Autres domaines
+    PL('general', 1, "Associe chaque pays à sa capitale.", "France=Paris;Italie=Rome;Espagne=Madrid;Allemagne=Berlin", "Quatre capitales européennes.");
+    PL('general', 1, "Remets ces planètes de la plus proche à la plus éloignée du Soleil.", "1re=Mercure;2e=Vénus;3e=Terre;4e=Mars;5e=Jupiter", "L'ordre est Mercure, Vénus, Terre, Mars, Jupiter.");
+    PL('cinema', 2, "Associe chaque film à son réalisateur.", "Titanic=James Cameron;Pulp Fiction=Quentin Tarantino;Jurassic Park=Steven Spielberg;Psychose=Alfred Hitchcock", "Quatre films cultes et leurs réalisateurs.");
+    PL('cinema', 2, "Remets ces films Star Wars dans l'ordre de leur sortie.", "1er=Un nouvel espoir;2e=L'Empire contre-attaque;3e=Le Retour du Jedi;4e=La Menace fantôme", "Sortis en 1977, 1980, 1983 puis 1999.");
+    PL('gaming', 2, "Associe chaque série de jeux à son éditeur ou studio.", "Mario=Nintendo;Sonic=Sega;Halo=Bungie;Assassin's Creed=Ubisoft", "Quatre séries et leurs créateurs.");
+    PL('gaming', 3, "Remets ces consoles Nintendo dans l'ordre de leur sortie.", "1re=NES;2e=Super Nintendo;3e=Nintendo 64;4e=Wii;5e=Switch", "NES (1983), Super Nintendo (1990), Nintendo 64 (1996), Wii (2006), Switch (2017).");
+    PL('art', 1, "Associe chaque œuvre à son peintre.", "La Joconde=Léonard de Vinci;La Nuit étoilée=Vincent van Gogh;Guernica=Pablo Picasso;Les Nymphéas=Claude Monet", "Quatre œuvres célèbres.");
+    PL('art', 3, "Remets ces mouvements artistiques dans l'ordre chronologique.", "1er=Renaissance;2e=Baroque;3e=Impressionnisme;4e=Cubisme;5e=Pop art", "De la Renaissance du XVe siècle au Pop art des années 1950-60.");
+    PL('history', 2, "Remets ces événements dans l'ordre chronologique.", "1er=Chute de l'Empire romain d'Occident;2e=Découverte de l'Amérique;3e=Révolution française;4e=Première Guerre mondiale;5e=Chute du mur de Berlin", "476, 1492, 1789, 1914 puis 1989.");
+    PL('history', 1, "Associe chaque personnage à son pays ou peuple.", "Napoléon=France;Cléopâtre=Égypte;Gengis Khan=Mongolie;Jules César=Rome", "Quatre figures historiques.");
+    PL('geography', 1, "Associe chaque monument à sa ville.", "Tour Eiffel=Paris;Colisée=Rome;Big Ben=Londres;Statue de la Liberté=New York", "Quatre monuments célèbres.");
+    PL('geography', 3, "Remets ces sommets du plus haut au plus bas.", "1er=Everest;2e=K2;3e=Kangchenjunga;4e=Kilimandjaro;5e=Mont Blanc", "Everest (8 849 m), K2, Kangchenjunga, Kilimandjaro (5 895 m), Mont Blanc (4 806 m).");
+    PL('music', 1, "Associe chaque chanson à son artiste.", "Thriller=Michael Jackson;Bohemian Rhapsody=Queen;Hello=Adele;Imagine=John Lennon", "Quatre tubes mondiaux.");
+    PL('music', 1, "Associe chaque instrument à sa famille.", "Violon=Les cordes;Trompette=Les cuivres;Flûte=Les bois;Tambour=Les percussions", "Un orchestre regroupe ces familles d'instruments.");
+    PL('science', 2, "Associe chaque symbole chimique à son élément.", "Au=Or;Fe=Fer;Na=Sodium;K=Potassium", "Ces symboles viennent souvent du latin.");
+    PL('science', 2, "Remets ces planètes de la plus petite à la plus grande.", "1re=Mercure;2e=Mars;3e=Terre;4e=Saturne;5e=Jupiter", "Jupiter est la plus grande planète du système solaire.");
+    PL('sports', 1, "Associe chaque sport à son équipement.", "Tennis=Une raquette;Golf=Un club;Hockey sur glace=Un palet;Badminton=Un volant", "Chaque sport a son matériel.");
+    PL('sports', 1, "Associe chaque sportif à son sport.", "Usain Bolt=Athlétisme;Michael Phelps=Natation;Tiger Woods=Golf;Rafael Nadal=Tennis", "Quatre champions légendaires.");
+    PL('cuisine', 1, "Associe chaque plat à son pays.", "Sushi=Japon;Paella=Espagne;Pizza=Italie;Tacos=Mexique", "Quatre classiques de la cuisine du monde.");
+    PL('cuisine', 2, "Associe chaque ingrédient à sa spécialité.", "Pois chiches=Houmous;Basilic=Pesto;Semoule=Couscous;Chou fermenté=Kimchi", "Chaque ingrédient est la base d'un plat célèbre.");
+    PL('math', 1, "Associe chaque forme à son nombre de côtés.", "Triangle=3 côtés;Carré=4 côtés;Pentagone=5 côtés;Hexagone=6 côtés", "Le préfixe indique le nombre de côtés.");
+    PL('math', 2, "Remets ces nombres du plus petit au plus grand.", "1er=0,3;2e=1/2;3e=0,75;4e=1,2", "0,3 < 0,5 < 0,75 < 1,2.");
+    PL('halloween', 1, "Associe chaque monstre à sa particularité.", "Vampire=Boit du sang;Loup-garou=Se transforme à la pleine lune;Momie=Est enveloppée de bandelettes;Fantôme=Hante les maisons", "Les quatre monstres classiques d'Halloween.");
+
+    /* ---- QUESTIONS INTERACTIVES AVEC IMAGES (drapeaux, emojis, schémas dessinés) ---- */
+    const PLI = (cat, d, q, rows, explanation) => QUESTION_BANK[cat].push({ type: 'place', d, q, slots: rows.map((r, i) => 'ABCDE'[i]), slotsSvg: rows.map(r => r[0]), items: rows.map(r => r[1]), answer: rows.map((_, i) => i), explanation });
+    const EM = e => `<span class="text-4xl leading-none">${e}</span>`;
+    const FLG = c => `<img src="https://flagcdn.com/w80/${c}.png" alt="" class="w-20 rounded border border-slate-600">`;
+    const SV = inner => `<svg viewBox="0 0 60 60" class="w-14 h-14" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+    // Drapeaux (vraies images)
+    PLI('flags', 1, "Associe chaque drapeau à son pays.", [[FLG('jp'), 'Japon'], [FLG('it'), 'Italie'], [FLG('de'), 'Allemagne'], [FLG('es'), 'Espagne']], "Quatre drapeaux européens et asiatiques très connus.");
+    PLI('flags', 2, "Associe chaque drapeau à son pays d'Amérique.", [[FLG('br'), 'Brésil'], [FLG('ca'), 'Canada'], [FLG('mx'), 'Mexique'], [FLG('ar'), 'Argentine']], "Quatre drapeaux du continent américain.");
+    PLI('flags', 2, "Associe chaque drapeau à son pays d'Asie.", [[FLG('kr'), 'Corée du Sud'], [FLG('cn'), 'Chine'], [FLG('in'), 'Inde'], [FLG('th'), 'Thaïlande']], "Quatre drapeaux asiatiques.");
+    PLI('flags', 3, "Associe chaque drapeau à son pays nordique.", [[FLG('se'), 'Suède'], [FLG('no'), 'Norvège'], [FLG('fi'), 'Finlande'], [FLG('dk'), 'Danemark']], "Tous ont une croix, mais avec des couleurs différentes.");
+    PLI('flags', 3, "Associe chaque drapeau à son pays d'Afrique.", [[FLG('ng'), 'Nigeria'], [FLG('ke'), 'Kenya'], [FLG('eg'), 'Égypte'], [FLG('za'), 'Afrique du Sud']], "Quatre drapeaux africains.");
+    // Emojis
+    PLI('cuisine', 1, "Associe chaque spécialité à son pays d'origine.", [[EM('🍣'), 'Japon'], [EM('🥐'), 'France'], [EM('🌮'), 'Mexique'], [EM('🍕'), 'Italie']], "Sushi japonais, croissant français, taco mexicain et pizza italienne.");
+    PLI('halloween', 1, "Associe chaque image à son nom.", [[EM('🎃'), 'La citrouille'], [EM('👻'), 'Le fantôme'], [EM('🕷️'), "L'araignée"], [EM('🧛'), 'Le vampire']], "Quatre symboles d'Halloween.");
+    PLI('sports', 2, "Associe chaque ballon au nombre de joueurs sur le terrain.", [[EM('⚽'), '11 joueurs'], [EM('🏀'), '5 joueurs'], [EM('🏐'), '6 joueurs'], [EM('🏉'), '15 joueurs']], "Football 11, basket 5, volley 6 et rugby à XV 15.");
+    PLI('geography', 1, "Associe chaque symbole à son pays.", [[EM('🗼'), 'Japon'], [EM('🗽'), 'États-Unis'], [EM('🗿'), 'Chili'], [EM('🍁'), 'Canada']], "La tour de Tokyo, la statue de la Liberté, les moaï de l'île de Pâques et la feuille d'érable.");
+    PLI('manga', 2, "Associe chaque symbole à son manga.", [[EM('🍥'), 'Naruto'], [EM('🏴‍☠️'), 'One Piece'], [EM('📓'), 'Death Note'], [EM('🐉'), 'Dragon Ball']], "Le narutomaki de Naruto, le drapeau pirate de One Piece, le carnet de Death Note et le dragon Shenron.");
+    // Schémas dessinés
+    PLI('science', 1, "Associe chaque image à sa planète.", [
+      [SV('<circle cx="30" cy="30" r="24" fill="#c1440e"/>'), 'Mars'],
+      [SV('<circle cx="30" cy="30" r="15" fill="#e3c27a"/><ellipse cx="30" cy="30" rx="27" ry="7" fill="none" stroke="#b8a070" stroke-width="3" transform="rotate(-20 30 30)"/>'), 'Saturne'],
+      [SV('<circle cx="30" cy="30" r="24" fill="#d8a773"/><path d="M8 24H52M6.5 32H53.5M9 40H51" stroke="#a9744f" stroke-width="3"/>'), 'Jupiter'],
+      [SV('<circle cx="30" cy="30" r="24" fill="#2f6fd0"/><path d="M18 22Q26 14 34 22Q30 30 20 30Z" fill="#3c9a4a"/><path d="M34 38Q44 34 46 42Q40 48 34 44Z" fill="#3c9a4a"/>'), 'La Terre']
+    ], "Mars est rouge, Saturne a des anneaux, Jupiter des bandes et la Terre des océans.");
+    PLI('math', 1, "Associe chaque figure à son nom.", [
+      [SV('<polygon points="30,8 54,50 6,50" fill="#f59e0b"/>'), 'Triangle'],
+      [SV('<rect x="10" y="10" width="40" height="40" fill="#f59e0b"/>'), 'Carré'],
+      [SV('<circle cx="30" cy="30" r="22" fill="#f59e0b"/>'), 'Cercle'],
+      [SV('<polygon points="30,6 52,18 52,42 30,54 8,42 8,18" fill="#f59e0b"/>'), 'Hexagone']
+    ], "Le triangle a 3 côtés, le carré 4, l'hexagone 6 et le cercle aucun.");
+
+    /* ---- IMAGES LIBRES DE DROITS : estampe de Hokusai (domaine public, via Wikimedia Commons) ---- */
+    const HOKUSAI = w => `https://commons.wikimedia.org/wiki/Special:FilePath/Tsunami_by_hokusai_19th_century.jpg?width=${w}`;
+    const CREDIT = " Estampe de Hokusai (domaine public), source : Wikimedia Commons.";
+    QUESTION_BANK.manga.push(
+      { ...mc("Quel artiste japonais a réalisé cette célèbre estampe ?", "Hokusai", ["Hiroshige", "Utamaro", "Miyazaki"], "Hokusai (1760-1849) est aussi l'auteur des Hokusai Manga." + CREDIT), type: 'flag', flag: HOKUSAI(400), big: true, d: 2 },
+      { ...mc("Quelle montagne sacrée apparaît au loin sous la grande vague ?", "Le mont Fuji", ["Le mont Aso", "Le mont Tate", "Le mont Ontake"], "L'estampe fait partie de la série « Trente-six vues du mont Fuji »." + CREDIT), type: 'flag', flag: HOKUSAI(401), big: true, d: 2 },
+      { ...mc("Quel est le titre de cette estampe de 1830 environ ?", "La Grande Vague de Kanagawa", ["Le Jardin des délices", "La Nuit étoilée", "Le Cri"], "Elle est l'une des œuvres japonaises les plus connues au monde." + CREDIT), type: 'flag', flag: HOKUSAI(402), big: true, d: 1 },
+      { ...mc("Quel recueil de croquis de 1814, signé Hokusai, a contribué à populariser le mot « manga » ?", "Les Hokusai Manga", ["Les Trente-six vues du mont Fuji", "Le Dit du Genji", "Les Cent vues d'Edo"], "Le mot signifie à peu près « images au fil du pinceau »."), d: 3 }
+    );
+
+    /* ---- Quelques questions de plus ---- */
+    DD('general', `
+1|Quel gaz fait pétiller les boissons gazeuses ?|Le dioxyde de carbone|L'oxygène|L'azote|L'hélium|On l'appelle aussi gaz carbonique.
+`);
+    DD('cinema', `
+2|Qui joue Tony Montana dans 'Scarface' ?|Al Pacino|Robert De Niro|Joe Pesci|Sylvester Stallone|Le film a été réalisé par Brian De Palma en 1983.
+`);
+    DD('gaming', `
+2|Quel studio a créé 'The Witcher 3' ?|CD Projekt Red|Bethesda|BioWare|Ubisoft|Il est sorti en 2015.
+`);
+    DD('art', `
+3|Qui a écrit 'Voyage au bout de la nuit' ?|Louis-Ferdinand Céline|Albert Camus|Jean-Paul Sartre|André Malraux|Le roman est paru en 1932.
+`);
+    DD('history', `
+2|Quelle reine de France a été guillotinée en 1793 ?|Marie-Antoinette|Catherine de Médicis|Anne d'Autriche|Joséphine|Elle était l'épouse de Louis XVI.
+`);
+    DD('geography', `
+2|Quelle est la capitale du Vietnam ?|Hanoï|Hô Chi Minh-Ville|Da Nang|Hué|Hô Chi Minh-Ville est la plus grande ville du pays.
+`);
+    DD('music', `
+2|Qui a chanté 'Dance Monkey' ?|Tones and I|Dua Lipa|Billie Eilish|Sia|Le titre est sorti en 2019.
+`);
+    DD('science', `
+2|Quel est le plus petit os du corps humain ?|L'étrier|Le marteau|L'enclume|Le coccyx|Il se trouve dans l'oreille moyenne.
+`);
+    DD('sports', `
+2|Quel pays a remporté l'Euro 2020 de football, joué en 2021 ?|L'Italie|L'Angleterre|L'Espagne|La France|La finale s'est jouée à Wembley.
+`);
+    DD('cuisine', `
+2|Quel plat japonais est composé de boulettes de poulpe ?|Les takoyaki|Les gyozas|Les onigiri|Les yakitori|Ils sont cuits dans une plaque spéciale.
+`);
+    DD('tanks', `
+2|Quel char américain a été très utilisé pendant la guerre du Golfe en 1991 ?|Le M1 Abrams|Le M60 Patton|Le Sherman|Le Pershing|Il a combattu en Irak.
+`);
+    DD('manga', `
+2|Quel manga met en scène Light Yagami et un carnet mortel ?|Death Note|Tokyo Ghoul|Bleach|Fullmetal Alchemist|Light y rencontre le dieu de la mort Ryuk.
+`);
+    DD('math', `
+2|Combien de côtés a un octogone ?|8|6|10|12|« Octo » signifie huit.
+`);
+    DD('halloween', `
+1|Quel costume classique est un drap blanc avec deux trous pour les yeux ?|Le fantôme|Le zombie|Le vampire|Le squelette|C'est souvent un simple drap.
+`);
+
     /* ---- Nettoyage final : doublons retirés, puis tri par type (QCM → cartes → drapeaux), puis par difficulté (facile → difficile) ---- */
     (() => {
       const seen = new Set();
@@ -2107,7 +2276,10 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
       document.getElementById('map-container').classList.add('hidden');
       document.getElementById('mcq-options').innerHTML = "";
 
-      if (q.type === "map") {
+      document.getElementById('place-container').classList.add('hidden');
+      if (q.type === 'place') {
+        renderPlaceQuestion(q);
+      } else if (q.type === "map") {
         renderMapQuestion(q);
       } else {
         if (q.type === "flag") {
@@ -2138,8 +2310,15 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
           <i class="fa-regular fa-circle text-slate-500 check-icon"></i>
         `;
         btn.onclick = () => selectMCQOption(idx, btn);
+        enableDrag(btn, zone => { if (zone.dataset.drop === 'mcq') selectMCQOption(idx, btn); });
         container.appendChild(btn);
       });
+      const dz = document.createElement('div');
+      dz.id = 'mcq-dropzone';
+      dz.dataset.drop = 'mcq';
+      dz.className = 'col-span-full rounded-2xl border-2 border-dashed border-slate-600 text-slate-400 text-center py-4 text-sm font-semibold';
+      dz.textContent = '⬇ Ou glisse ta réponse ici';
+      container.appendChild(dz);
     }
 
     function selectMCQOption(idx, buttonEl) {
@@ -2158,6 +2337,8 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
         if (i) i.className = 'fa-regular fa-circle text-slate-500 check-icon';
       });
       buttonEl.classList.add('option-selected');
+      const dzEl = document.getElementById('mcq-dropzone');
+      if (dzEl) { const sp = buttonEl.querySelector('span'); dzEl.textContent = '✅ Réponse choisie : ' + (sp ? sp.textContent : ''); }
       const icon = buttonEl.querySelector('.check-icon');
       if (icon) icon.className = "fa-solid fa-circle-check text-amber-400 text-xl check-icon";
       setNote("Réponse enregistrée — tu peux la changer jusqu'à la fin du temps.");
@@ -2241,7 +2422,7 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
         const a = p.currentAnswer;
         return {
           id: p.id, name: p.name, avatar: includeAvatar === false ? '' : p.avatar, score: p.score, team: teamMode ? p.team : null, isBot: !!p.isBot, hasAnswered: !!p.hasAnswered, earned: p.earned || 0,
-          currentAnswer: !withAnswers || a === null || a === undefined ? null : (typeof a === 'object' ? { lat: a.lat, lng: a.lng } : a)
+          currentAnswer: !withAnswers || a === null || a === undefined ? null : (Array.isArray(a) ? a : typeof a === 'object' ? { lat: a.lat, lng: a.lng } : a)
         };
       });
     }
@@ -2763,6 +2944,137 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
       checkAllAnswered();
     }
 
+    /* ---------- Glisser-déposer (souris et tactile) ---------- */
+    function enableDrag(el, onDrop) {
+      el.style.touchAction = 'none';
+      el.addEventListener('pointerdown', e => {
+        if (e.button !== undefined && e.button !== 0) return;
+        const sx = e.clientX, sy = e.clientY;
+        let ghost = null, moved = false;
+        const clearZones = () => document.querySelectorAll('[data-drop]').forEach(z => { z.style.outline = ''; });
+        const move = ev => {
+          if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 8) {
+            moved = true;
+            ghost = el.cloneNode(true);
+            ghost.style.cssText = 'position:fixed;z-index:9999;pointer-events:none;opacity:.92;transform:translate(-50%,-50%) scale(1.04);width:' + el.offsetWidth + 'px;';
+            document.body.appendChild(ghost);
+            el.style.opacity = '.35';
+          }
+          if (!moved) return;
+          ghost.style.left = ev.clientX + 'px';
+          ghost.style.top = ev.clientY + 'px';
+          clearZones();
+          const t = document.elementFromPoint(ev.clientX, ev.clientY);
+          const z = t && t.closest('[data-drop]');
+          if (z) z.style.outline = '2px solid #fbbf24';
+        };
+        const up = ev => {
+          window.removeEventListener('pointermove', move);
+          window.removeEventListener('pointerup', up);
+          window.removeEventListener('pointercancel', up);
+          if (!moved) return;
+          el.style.opacity = '';
+          ghost.remove();
+          clearZones();
+          const stop = x => { x.stopImmediatePropagation(); x.preventDefault(); };
+          el.addEventListener('click', stop, true);
+          setTimeout(() => el.removeEventListener('click', stop, true), 80);
+          const t = document.elementFromPoint(ev.clientX, ev.clientY);
+          const z = t && t.closest('[data-drop]');
+          if (z && ev.type === 'pointerup') onDrop(z);
+        };
+        window.addEventListener('pointermove', move);
+        window.addEventListener('pointerup', up);
+        window.addEventListener('pointercancel', up);
+      });
+    }
+
+    /* ---------- Questions interactives : remettre à la bonne place ---------- */
+    let placeState = null;
+    const placeShuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+    function renderPlaceQuestion(q) {
+      document.getElementById('place-container').classList.remove('hidden');
+      placeState = { q, assign: q.slots.map(() => null), selected: null, order: placeShuffle([...q.items.keys()]) };
+      drawPlace();
+    }
+    function drawPlace() {
+      const { q, assign, selected, order } = placeState;
+      const used = new Set(assign.filter(v => v !== null));
+      const full = assign.every(v => v !== null);
+      const box = document.getElementById('place-container');
+      box.innerHTML = `
+        ${q.svg ? `<div class="mx-auto max-w-md mb-3 rounded-xl bg-slate-900/60 p-2">${q.svg}</div>` : ''}
+        <div class="space-y-2">${q.slots.map((lab, i) => `
+          <button data-slot="${i}" data-drop="slot" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl border ${assign[i] !== null ? 'border-amber-400 bg-amber-500/10' : 'border-slate-700 bg-slate-900/60'} text-left hover:border-amber-400 transition">
+            <span class="font-black text-amber-300 min-w-[2rem] shrink-0">${esc(lab)}</span>${q.slotsSvg ? `<span class="shrink-0 w-24">${q.slotsSvg[i]}</span>` : ''}
+            <span class="flex-1 ${assign[i] !== null ? 'text-white font-semibold' : 'text-slate-500'}">${assign[i] !== null ? esc(q.items[assign[i]]) : 'Touche ici pour placer…'}</span>
+            ${assign[i] !== null ? '<span class="text-slate-400">✕</span>' : ''}
+          </button>`).join('')}</div>
+        <div class="mt-4 text-xs text-slate-400">Glisse un élément sur son emplacement (ou touche-le, puis touche l'emplacement) :</div>
+        <div data-drop="pool" class="flex flex-wrap gap-2 mt-2 min-h-[3rem]">${order.filter(k => !used.has(k)).map(k => `
+          <button data-item="${k}" class="cursor-grab select-none px-4 py-2 rounded-xl border-2 ${selected === k ? 'border-amber-400 bg-amber-500/30' : 'border-slate-600 bg-slate-800'} font-semibold hover:border-amber-400 transition">${esc(q.items[k])}</button>`).join('') || '<span class="text-slate-500 text-sm">Tout est placé ✔</span>'}</div>
+        <div class="flex justify-end mt-4">
+          <button id="btn-submit-place" ${full ? '' : 'disabled'} class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 font-black ${full ? '' : 'opacity-50 cursor-not-allowed'}">${localPlayer.hasAnswered ? 'Valider la modification ✔' : 'Valider ✔'}</button>
+        </div>`;
+      box.querySelectorAll('[data-item]').forEach(b => b.onclick = () => { placeState.selected = +b.dataset.item; drawPlace(); });
+      box.querySelectorAll('[data-slot]').forEach(b => b.onclick = () => {
+        if (!roundActive) return;
+        const i = +b.dataset.slot;
+        if (placeState.selected !== null) { placeState.assign[i] = placeState.selected; placeState.selected = null; }
+        else if (placeState.assign[i] !== null) placeState.assign[i] = null;
+        drawPlace();
+      });
+      box.querySelectorAll('[data-item]').forEach(b => enableDrag(b, zone => {
+        if (!roundActive || zone.dataset.drop !== 'slot') return;
+        placeState.assign[+zone.dataset.slot] = +b.dataset.item;
+        placeState.selected = null;
+        drawPlace();
+      }));
+      box.querySelectorAll('[data-slot]').forEach(b => {
+        const j = +b.dataset.slot;
+        if (placeState.assign[j] === null) return;
+        enableDrag(b, zone => {
+          if (!roundActive) return;
+          const a = placeState.assign;
+          if (zone.dataset.drop === 'pool') a[j] = null;
+          else if (zone.dataset.drop === 'slot') { const i = +zone.dataset.slot; if (i !== j) { const tmp = a[i]; a[i] = a[j]; a[j] = tmp; } }
+          drawPlace();
+        });
+      });
+      document.getElementById('btn-submit-place').onclick = submitPlaceAnswer;
+    }
+    function submitPlaceAnswer() {
+      if (!placeState || !roundActive || timeLeft <= 0 || placeState.assign.some(v => v === null)) return;
+      localPlayer.hasAnswered = true;
+      sfx('click');
+      localPlayer.currentAnswer = [...placeState.assign];
+      localPlayer.answeredLeft = timeLeft;
+      reportAnswer(localPlayer.currentAnswer);
+      updatePlayersStatusUI();
+      checkAllAnswered();
+      drawPlace();
+    }
+    const placeOk = (ans, q) => q.slots.filter((_, i) => ans[i] === q.answer[i]).length;
+    function placeScore(q, ans, left) {
+      if (!Array.isArray(ans)) return 0;
+      const n = q.slots.length, ok = placeOk(ans, q);
+      return Math.round(1000 * ok / n) + (ok === n ? left * 20 : 0);
+    }
+    function placeLabel(ans, q) {
+      if (!Array.isArray(ans)) return '⏳ Pas de réponse';
+      const ok = placeOk(ans, q);
+      return (ok === q.slots.length ? '✅ ' : '❌ ') + ok + '/' + q.slots.length + ' bien placés';
+    }
+    function placeRecapHTML(q, mine) {
+      const sol = q.slots.map((lab, i) => `<div class="flex items-center gap-2">${q.slotsSvg ? `<span class="w-16 inline-block">${q.slotsSvg[i]}</span>` : ''}<b>${esc(lab)}</b> → ${esc(q.items[q.answer[i]])}</div>`).join('');
+      return `<div>✅ Solution :</div><div class="mt-1 inline-block text-left">${sol}</div><div class="mt-2">Ton résultat : <b>${mine}</b></div>`;
+    }
+    function botPlace(q) {
+      const a = [...q.answer];
+      for (let i = 0; i < a.length; i++) if (Math.random() < 0.35) { const j = Math.floor(Math.random() * a.length); [a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+
     function simulateBotAnswers(question) {
       botPlayers.filter(b => b.isBot).forEach(bot => {
         const delay = Math.floor(Math.random() * 8000) + 2000;
@@ -2771,7 +3083,9 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
 
           bot.hasAnswered = true;
           bot.answeredLeft = timeLeft;
-          if (question.type === "map") {
+          if (question.type === 'place') {
+            bot.currentAnswer = botPlace(question);
+          } else if (question.type === "map") {
             const latErr = (Math.random() - 0.5) * 15;
             const lngErr = (Math.random() - 0.5) * 15;
             bot.currentAnswer = { lat: question.lat + latErr, lng: question.lng + lngErr };
@@ -2859,7 +3173,9 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
       [localPlayer, ...botPlayers].forEach(p => {
         let earned = 0;
         if (p.hasAnswered && p.currentAnswer !== null && p.currentAnswer !== undefined) {
-          if (q.type === "map") {
+          if (q.type === 'place') {
+            earned = placeScore(q, p.currentAnswer, p.answeredLeft ?? timeLeft);
+          } else if (q.type === "map") {
             const dist = calculateDistance(p.currentAnswer.lat, p.currentAnswer.lng, q.lat, q.lng);
             earned = Math.max(0, Math.round(1000 - dist * 0.5));
           } else if (p.currentAnswer === q.answer) {
@@ -2876,6 +3192,7 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
 
     const ansLabel = (p, q) => {
       if (!p.hasAnswered || p.currentAnswer === null || p.currentAnswer === undefined) return '⏳ Pas de réponse';
+      if (q.type === 'place') return placeLabel(p.currentAnswer, q);
       if (q.type === 'map') return `📍 à ${calculateDistance(p.currentAnswer.lat, p.currentAnswer.lng, q.lat, q.lng).toLocaleString('fr-FR')} km`;
       return (p.currentAnswer === q.answer ? '✅ ' : '❌ ') + esc(q.options[p.currentAnswer] ?? '?');
     };
@@ -2885,7 +3202,7 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
       document.getElementById('view-recap').classList.remove('hidden');
 
       const mine = ansLabel(localPlayer, q);
-      document.getElementById('recap-explanation').innerHTML = (q.type === "map"
+      document.getElementById('recap-explanation').innerHTML = (q.type === 'place' ? placeRecapHTML(q, mine) : q.type === "map"
         ? `<div>📍 <b>${esc(q.name)}</b></div>`
         : `<div>✅ Bonne réponse : <b>${esc(q.options[q.answer])}</b></div><div class="mt-1">Ta réponse : <b>${mine}</b></div>`)
         + `<div class="mt-2 text-slate-400">${esc(q.explanation)}</div>`;
