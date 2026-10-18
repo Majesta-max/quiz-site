@@ -2833,6 +2833,8 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
         loadQuestion(d.index);
       } else if (d.t === 'status') {
         d.players.forEach(sp => { const b = botPlayers.find(x => x.id === sp.id); if (b) b.hasAnswered = sp.hasAnswered; });
+        const me = d.players.find(x => x.id === localPlayer.id);
+        if (me && !me.hasAnswered && roundActive && localPlayer.hasAnswered && localPlayer.currentAnswer !== null) reportAnswer(localPlayer.currentAnswer);
         updatePlayersStatusUI();
       } else if (d.t === 'recap') {
         clearInterval(timerInterval);
@@ -3173,7 +3175,7 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
           if (net.role === 'guest') { if (localPlayer.hasAnswered) reportAnswer(localPlayer.currentAnswer); }
-          else if (net.role === 'host' && net.humans.length) setTimeout(finishRound, 1500);
+          else if (net.role === 'host' && net.humans.length) { const t0 = Date.now(); const waitGuests = () => { if (!roundActive) return; if (net.humans.every(h => h.hasAnswered) || Date.now() - t0 > 4000) finishRound(); else setTimeout(waitGuests, 250); }; setTimeout(waitGuests, 1200); }
           else finishRound();
         }
       }, 1000);
@@ -3248,6 +3250,21 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
       if (q.type === 'map') return `📍 à ${calculateDistance(p.currentAnswer.lat, p.currentAnswer.lng, q.lat, q.lng).toLocaleString('fr-FR')} km`;
       return (p.currentAnswer === q.answer ? '✅ ' : '❌ ') + esc(q.options[p.currentAnswer] ?? '?');
     };
+    // Récap QCM : chaque option est validée (vert/rouge) avec les joueurs qui l'ont choisie
+    function mcqRecapHTML(q) {
+      const all = [localPlayer, ...botPlayers];
+      const rows = q.options.map((opt, i) => {
+        const pickers = all.filter(p => p.hasAnswered && p.currentAnswer === i);
+        const ok = i === q.answer;
+        const cls = ok ? 'border-emerald-500 bg-emerald-500/15 text-emerald-200'
+          : pickers.length ? 'border-rose-500 bg-rose-500/15 text-rose-200'
+          : 'border-slate-700 bg-slate-800/50 text-slate-400';
+        const who = pickers.map(p => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950/60 text-xs">${av(p.avatar, 16)}${esc(p.name)}${p.id === localPlayer.id ? ' (toi)' : ''}</span>`).join(' ');
+        return `<div class="rounded-xl border p-2 text-left ${cls}"><div class="font-bold">${ok ? '✅' : (pickers.length ? '❌' : '▫️')} ${esc(opt)}</div>${who ? `<div class="mt-1 flex flex-wrap gap-1">${who}</div>` : ''}</div>`;
+      }).join('');
+      const none = all.filter(p => !p.hasAnswered || p.currentAnswer === null || p.currentAnswer === undefined);
+      return `<div class="mt-3 space-y-1">${rows}</div>` + (none.length ? `<div class="mt-2 text-xs text-slate-400">⏳ Pas de réponse : ${none.map(p => esc(p.name)).join(', ')}</div>` : '');
+    }
     function showRecapView(q) {
       sfx(localPlayer.earned > 0 ? 'ok' : 'no');
       document.getElementById('view-game').classList.add('hidden');
@@ -3256,7 +3273,7 @@ Quel légume est la base des frites ?|La pomme de terre|La carotte|La patate dou
       const mine = ansLabel(localPlayer, q);
       document.getElementById('recap-explanation').innerHTML = (q.type === 'place' ? placeRecapHTML(q, mine) : q.type === "map"
         ? `<div>📍 <b>${esc(q.name)}</b></div>`
-        : `<div>✅ Bonne réponse : <b>${esc(q.options[q.answer])}</b></div><div class="mt-1">Ta réponse : <b>${mine}</b></div>`)
+        : `<div>✅ Bonne réponse : <b>${esc(q.options[q.answer])}</b></div><div class="mt-1">Ta réponse : <b>${mine}</b></div>` + mcqRecapHTML(q))
         + `<div class="mt-2 text-slate-400">${esc(q.explanation)}</div>`;
       const recapWrap = document.getElementById('recap-map-wrap');
       if (q.type === "map") {
